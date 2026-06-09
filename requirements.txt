@@ -1,5 +1,13 @@
 langchain
 langchain-community
+langchain-core
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
+pypdf
+dotenv
+llama-index
+llama-parse
+langchain_nvidia_ai_endpoints
+langchain-groq
+chromadb

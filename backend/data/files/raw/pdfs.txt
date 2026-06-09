@@ -1,0 +1,376 @@
+Thinking, F ast and Slow
+D.Kahneman
+February 12-13, 2014
+Human beings are hardly rational economical agents, at leas t they do not comply
+with the classical economical theories of economic transac tions. They do not formulate
+utility functions, the pursuit of which they are expected to conduct with relentlessness
+and consistency. This is hardly a surprising insight but one which most people, except
+possibly economical model builders, instinctively hold. O n the other hand every model by
+necessity involves drastic simpliﬁcations, in order to be m anageable and clearly show the
+salient features. To abandon a simple model which has shown i tself useful only makes sense
+when its predictions start to diverge too much from real life . This is a book addressed
+to a general public, and thus the author, a psychologist turn ed economist, does not make
+any attempt to show how classical economical models fail and how they can be suitably
+modiﬁed, but constricts himself to elaborate on the obvious shortcomings, which to most
+readers must be intuitively obvious and hence gratifying, a s man merely as a rational agent
+is to most of us seen as unnecessarily restrictive, with the i mplications that any theories
+that neglect those, must by necessity be radically ﬂawed. Th e author is careful to point
+out that he does not make a claim for the irrationality of man, on the contrary, without
+some rationality assumptions, predictions become impossi ble, only that he wants to make
+the notion of human rationality more nuanced, pointing out i ts limits. The author shares
+with most academic economists a sanguine belief in the possi bility of quantization in the
+social world, thus not doubting its ontological aspect, onl y its present epistemology.
+The starting point, which provides the title of the book, is t he distinction between
+fast and slow thinking, which roughly corresponds to the bas ic division between the sub-
+conscious and conscious pioneered by the nowadays discount ed Freud 1. We all have an
+uncanny ability to recognize faces, something which so far h as not been possible to simu-
+late on a computer in spite of its superior computing power. W e do so very quickly and
+with no apparent eﬀort in spite of all the computation that mu st be involved. Furthermore
+the act is not deliberate but involuntary and automatic. We c annot will ourselves not to
+recognize a well-known face. Those cognitive gifts are give n to us by God to serve us well
+in our daily life. Although nowadays we prefer to formulate i t in terms of natural selection
+and survival (and hence reproductive) advantages. Unless p ursued, which it seldom is,
+the latter formulation does not really carry much more illum ination than the classical.
+Similar to those are our abilities to eﬀortlessly retrieve a lot of diﬀerent facts, such as that
+Paris is the capital of France, or vocabularies of languages we speak with mindless ﬂuency.
+Opposed to the automatic and almost instantaneous thinking is the slow and laborious
+1 It is noteworthy that one of the blurbs printed on the back cover ’As Copernicus re moved the Earth
+from the centre of the universe and Darwin knocked humans oﬀ their biological perch, Kahneman has shown
+that we are not the paragons of reason we assume ourselves to be’ which is a co nscious or subconscious
+paraphrase of how Freud himself characterized his work.
+1
+one, which involves a lot of eﬀort, which actually shows deﬁn ite physiological symptoms
+in terms of dilations or pupils, increases in heart rates and blood pressures, and hence
+actually allows some objective quantitative measures. Thi s kind of thinking is conscious
+and craves attention and deliberation and excludes other ki nds of thinking. The typical
+example is making a standardized computation in your head, i nvolving keeping items in
+your working memory. When standardized you can easily gauge limits to your cognitive
+ability. Most people can with eﬀort multiply two two-digit n umbers but are unable to
+multiply two three digit numbers 2 .
+Most of our lives are spent in a default mood, all the decision s that are required are
+supplied by habits, once in a while there is an emergency, the senses realize it quickly
+and the fast thinking supplies an automated and instant resp onse which in most cases is
+fully adequate. In this sense we do not depart from animals in general. However, our
+fast thinking is not always appropriate, and then the slow th inking takes over, but only
+reluctantly so, as it is always associated with a large eﬀort (and, one surmises, depletion
+of energy). If a ready answer is supplied it often takes an eﬀo rt to question it 3 Now our
+God-given intuitions are not always perfect. And here, we do encounter the ﬁrst diﬀerence
+between God and Natural Selection. We are not supposed to que stion the perfection of
+God, but we are encouraged to explore the failings of Natural Selection.
+The ﬁrst thing to remember that there are too many contingenc ies in life, especially
+the social life of humans, to have precedents in the developm ent of the human race, or
+for that matter to be encodiﬁable in genes. What may be pre-pr ogrammed, so to speak,
+are certain tendencies to come to conclusions of a speedy jud ging processes, known as
+the gut feeling. The fallacies of our fast thinking, accordi ng to the author, is that the
+fast survival process only looks at the information at hand a nd does not actively look for
+additional information 4. Furthermore it weighs the diﬀerent components, not accord ing
+to their objective importance, but how vividly they appear t o the mind. Finally there is a
+premium on presenting a coherent and logically structured n arrative, because as humans
+we have a propensity for stories, and are very good at remembe ring them, as the diﬀerent
+components of it are tied together by logic and association 5. What comes through to the
+mind by such natural intuition is compelling. But as Popper r eminds us, conviction is
+a subjective feeling and should not be confused with truth. I t takes a lot to challenge
+2 The author provides as a generic example 17 × 24 when I attacked it I thought at ﬁrst of doubling
+the ﬁrst factor successively, then I realized that I should rewrite it as (17 × 3) × 8 and the task becomes
+trivial. I guess this was not intended by the author. To what kind of thinking doe s this exploration belong
+to? It was not painful, yet clearly it usurped my attention.
+3 As an example. Two people split $1.10, one picks a dollar more than the ot her, how do they split it.
+An instantaneous answer presents itself, namely $1 and $0.1 those are ob viously false, yet I fell into the
+trap. Why? Lazy, and the question did not interest me in the least. Had it been A is ten years older than
+B, their total age is 44, I would not have ﬂoundered.
+4 Referred to as WYSIATI meaning ’what you see is all there is’
+5 This is why a mathematician can recall a complicated proof, not verbati m of course, but as a story.
+Or why a genial musician like Mozart, can recall, verbatim in fact, a piece of music, only heard once. Or
+one, supposes, a chess master, recalling a position by a mere glance, se eing in it a story poignant with
+possibilities
+2
+such an emotionally charged conviction, and nothing short o f a brutal disappointment of
+expectation will do it. Those propensities of the human intu ition are responsible for the
+egregious errors of applying and estimating probabilities which people, even those suitably
+educated, come prey to. To that we will return.
+To counter the failings of human judgement it is, the author p oints out, important
+to have some mechanical algorithm that does the job. Such a st ratagem goes against the
+grain of most people. How can a mindless algorithm which ofte n is crude and based on
+inaccurate assumptions, seriously compete with human expe rience and that extra-sensory
+sense that intuition is supposed to represent. (In another a ge one could have referred to
+it as divine inspiration, without blushing. Now people woul d blush at such terminology,
+but what they are suggesting does not really diﬀer.) The adva ntages of the algorithmic
+approach is that 1) it works against the bias of readily avail able information and forces
+you to collect more of what is relevant to the case. 2) By using some mindless formula
+you check against the tendency to rely on subjective weights and ﬁnally 3) by getting a
+number or some such thing, you guard against the seduction of constructing an attractive
+narrative. There are also of course obvious disadvantages, but those are so obvious that
+they need not be spelled out. As an example the author cites th ree components which
+come into play when you are going to predict the quality of a gi ven vintage of wine, all
+simply referring to the weather. The amount of precipitatio n in the fall and spring and
+the average temperature of the latter. In particular tastin g the wine does not enter at
+all into consideration, something which sticks in the eye to the classical wine connoisseur.
+However, this simple scheme, seems superior to the regular m ethods. Whether this is true
+or not, we simply have to take the word of the author, there bei ng no other alternative,
+save an investigation of your own. In particular the stratag em is very controversial in the
+clinical setting. But once again we have to that the authors w ord for it, in studies made, the
+diagnostic precision of clinicians (as testiﬁed by subsequ ent autopsies?) is discouragingly
+low, and simple algorithms do better. In fact in modern medic ine quantitated test play a
+greater and greater role, and the old wisdom of the family doc tor with his holistic approach
+of taking in the whole person, is fading into the remembrance of quaint practices.
+Now, the disparagement of intuition caused a lot of controversy, and rather to engage in
+pungent but eventually fruitless polemics the author chose to invite his antagonist in a joint
+exploration that eventually led to some joint papers and, on e assumes, increased wisdom 6.
+The compromise they hammered out, was that in some instances there is something to be
+called professional intuition, but it needs to be honed duri ng a long time, with constant
+opportunity to more or less instantaneous feedback to small piecemeal changes. Learning
+to drive a car and bicycle are examples of this, when you can ﬁn e-tune the honing of your
+skill. But also in more conceptual ways, not just pertaining to your motor-abilities, it may
+work and its exploitation is basically that of recognition. A clinician does not necessarily
+get the prompt feedback on his pronouncements, and when give n feedback it will be on the
+6 Popper points out the importance of discussing with people opposed to yo ur views. The experience
+is not pleasant, but can be made tolerable with some practice, but is inevit ably mutually beneﬁcial, as
+long as your object is not to win the argument, but to take in points of vi ew of the other and acknowledge
+weaknesses in your own reasoning and thus be motivated to strengthen your own arguments and more
+clearly present you own point of view.
+3
+complex judgement itself, not pieces thereof. This also ind icates that the human intuition
+may very well be in the nature of a reﬁned algorithm after all, the workings of which have
+been modiﬁed during an extended exposure to the real world. I n short a matter of trial
+and error, the mode of operation of evolution.
+There are many examples of where experts are much in demand, s uch as in the predic-
+tion of political development (will there be a war? Who will b e elected President), where
+the connection between claiming and testing is too extended in time and too intermittent
+to either inﬂuence the expert beneﬁcially or engage the crit ical intelligence of the observer.
+The author has in minds the various pundits in political scie nce, whose attractiveness does
+not depend on the accuracy of their predictions but with the a brasiveness and conﬁdence
+they can deliver their opinions with. Other examples are ﬁna ncial experts on the stock
+market whose performances are disappointingly weak when ch ecked against the future, in
+fact seldom more eﬃcient than the random advice a monkey coul d have supplied throwing
+darts on a board. This does not mean that one cannot make a kill ing on the stock mar-
+ket beyond pure luck. Large investors with access to inside i nformation and big enough
+that there actions actually have an impact on the market, thu s allowing for a measure of
+control, but an individual player, looking for trends, is in a position no better than the
+hapless gambler by the casino. The house always has the upper hand. And ﬁnally, it is
+not at all clear how much eﬀect a CEO has on his company, what is due to skill and what
+is due to pure luck, in that his position is very similar to a ge neral in a battle, he may be
+an inspiration, but the actual dynamics on a battle ﬁeld foll ows a logic of its own when
+set free. But of course, clinician, political pundits, and ﬁ nancial advisors have more than
+a vested interest in keeping up the illusion.
+The notion of probability is a vague human notion connected t o possibility, plausibility
+and likelihood and a hoist of related concepts. It has a purel y formal deﬁnition, due
+to Kolomogorov, which does not accord exactly with the intui tion. It is an example
+of the traditional phenomenon that a mathematical model is i mposed on a social and
+psychological reality. The relentless logic of the mathema tics will eventually diverge from
+the human reality, which is then dismissed as illogical. The re is a certain element of truth to
+that, but it is a subtle question having to do with the eﬀectiv eness of mathematics in non-
+physical sciences, in which it does not appear unreasonable , although hardly reasonable
+either. In the Kolomogorovian sense, given a population of p individuals of type A and q
+individuals of type B, one may say that the probability of an i ndividual being of type A
+is p/p + q nothing more nothing less. To speak about the individual wit hout specifying
+of what type is a very convenient ﬁction, but one should not fo rget that it means nothing
+more than in the given population there are p individuals of o ne sort and q of the other 7.
+One could develop a mathematical theory of probability with out even ever mentioning
+probability. It would be artiﬁcial, because it is convenien t for the way we reason to think
+in terms of probabilities. But the notion is specious and sed uces us into thinking that one
+can speak about the probability of an event without even spec ifying the context, without
+which a deﬁnition cannot be made. Hence such questions as wha t is the probability that
+7 Given a population space, or more generally a space of outcomes, one may think of derives spaces,
+the objects of which are combinations of the basic objects, so called v irtual objects. Those can easily
+become very large and require a great deal of combinatorial ingenuity to com pute.
+4
+human intelligence arouse on Earth, or why I met my wife, whic h can be given many
+diﬀerent answers depending on the particular context one de ems pertinent.
+Now when it comes to events the mind is not able to give an objec tive assessment.
+Events which loom large and vivid in the imagination easily u surps far more prominence
+than warranted. As I point out, if plane crashes were more com mon, people may be
+less worried about ﬂying. Now plane crashes are spectacular events, because they are so
+dramatic and rare, that they engage the imagination and acqu ire thereby a high degree of
+plausibility (in fact what is more plausible, a plane that st ays up in the air, or one that
+crashes to the ground?) which is easily confounded with proba bility. This is the basis of
+terrorism, which is about creating the greatest fear with a m inimum of casualties 8. On
+the other hand common dangers may be downplayed as being too m undane. Often there
+is no awareness of dangers at all, or the dangers that actuall y exist are seen as irrelevant
+to your case. In fact, the latter is indicative of a state of mi nd referred to by the author
+as the inside view. We tend to experience life from the inside and seldom take an external
+point of view, meaning seeing ourselves as mere actors no diﬀ erent from others. In the
+classical Indian epics, it is pointed out that the most remar kable thing is the propensity of
+people to view themselves as immortal in spite of all the evid ence of people around them
+coming to grief. When you are engaged in a project, you see it a s something unique, and
+you gauge its progress not by comparison with other similar v entures, of which you most
+likely not only are unaware but have no desire to ﬁnd out, but w ith internal yardsticks.
+This makes for optimism, when a rational assessment would ha ve proscribed caution, if
+not downright pessimism. Most people starting businesses t ake on a very sanguine point
+of view, when the facts should be staring them in the eye. On th e other hand, what is
+wrong with optimism? If sperms would know of the odds against their success, surely
+none of them would embark on the epic journey of fertilizatio n? Many of us believe that
+if we are not immortal nevertheless we have a very good shot at living to a mature old
+age, especially as we most of the time feel in good health and h ave no intrinsic reason to
+conclude that the normal state of aﬀairs will come to an end, a fter all normality is what
+we are primed to expect. Similar sentiments may inﬂuence our expectations of becoming
+rich and famous, it happens to other people why not to me, and b esides there seem once
+again to be no compelling intrinsic reason why our expectati ons should be stymied. And
+after all, what is wrong with such rosy fantasies? Life is har d and brutal, why not try to
+soften it? And as with posthumous fame, disappointment is no t to be experienced.
+In addition to being unaware of the baselines, as the author e xpresses it, even when
+we are, we are slow to act on it appropriately. When told that 8 0 percent of all the cabs
+in a city are blue, we are likely to ignore this when being told that a cab involved in an
+accident was yellow with 80 percent certainty. However, if w e instead are informed that
+80 percent of all cab accidents involve drivers in blue cabs, we certainly will take that
+into account. This statistics somehow indicate an active ag ent, while mere numbers and
+frequencies seem inert and passive and thus not worthy of our attention.
+The very notion of probability is also, for similar reason, v ague in the minds of people,
+8 The author remarks correctly, that even at the height of suicide bombings in I srael, they never
+surpassed the level of normal traﬃc accidents. He found himself un at ease w hile driving behind a bus,
+not necessarily because he seriously
+5
+even those who are trained. At least it does not easily comply to the formal strictures
+imposed by Kolmogorov. When told that a certain woman (incid entally called Linda) is
+an active feminist most people will consider her more likely to be a feminist bank teller
+than just a bank teller, although from a strictly logical poi nt of view the latter includes the
+former, and thus tautologically becomes more probable. Eve n Stephen J. Gould admits
+to the error, as relayed by the author, or at least ﬁnding hims elf very much seduced by
+a possibility that his logical mind rejects as nonsense. But is it so surprising after all,
+the intuitive notion of probability is an active one, and if y ou are asked to rate diﬀerent
+occupational possibilities for a character you have seen de scribed, you naturally looks for
+the most likely option, among those you tend to think are mutu ally exclusive. Thus it is
+not unnatural that you will pick the option, in which the appe arance of your character
+seems most likely, in the sense that would you pick a random ex ample from it, chances are
+the greatest that you will hit the target. In particular, you are more likely to hit the target
+Linda, by choosing a woman randomly among feminist bank tell ers than from a collection
+of bank tellers at large.
+Maybe the most insidious fallacy that statistics invite the sophisticated to fall into, is
+that of ﬁnding irregularities where there are none and confu se correlations with causality.
+In fact the more sophisticated you are, the more fervent your imagination, the greater the
+seduction. Maybe one of the most obvious ones are regression s to the mean. If events are
+truly independent of each other, the likelihood that a good r un will be followed by a worse
+run are greater than not. In fact this almost tautological fa ct remains even if there are
+dependencies, provided they are not too pronounced. Good pe rformances may elicit praise
+and encouragement, and when followed by disappointing ones (meaning not quite as good),
+those are given all kinds of explanations, such as praise may spoil people, or make them
+tense and set up expectations which have an inhibiting eﬀect . While bad performances,
+which provoke censure, more likely than not will be followed by improvements, which
+then can be seen as appropriate reactions to the former. That an initial bad start will
+strengthen character and foster a laudable determination t o improve. But of course it is
+just an illustration of that performances will center aroun d the mean. If you have ten
+heads in the row, it does not mean that the next ﬂip is more like ly to be a tail, it only
+means that the next ten ﬂips will be more likely to contain nin e heads or less, which is of
+course worse than ten heads, but the ﬁrst statement would be t rue regardless of whether
+ten throws have already been made or not, it is only that they s et the benchmark. Going
+worse is a fact but the connection is entirely in our minds 9. One may as well argue that the
+sequence of ten subsequent throws with a mediocre number of h eads, causes the previous.
+Similarly small samples show greater variations than large . In one throw you have either a
+head or a tail, zero or one, But in a thousand throws you will ha rdly have a thousand tails
+or a thousand throws, Thus when looking for correlations in v oting districts, those will be
+far more marked in the small one, and have nothing to do with th e fact that those tend
+to be rural and Republican. One may of course always discount obvious cases of spurious
+correlation, in medicine this is routinely done by setting u p control groups, still there is
+9 Distantly connected to this is the phenomenon of anchoring, that the author disc usses in some detail.
+If asked to gauge a number, just being given one, invariably inﬂuences the proc ess, as the number invites
+a comparison, as well as a suspicion that it is not entirely arbitrary.
+6
+always the possibility of non-obvious biases, the kinds of w hich we have no idea of. Thus
+the principal objection against setting up statistical tes ts to verify hypotheses: there is
+always something we may overlook.
+Now the supposed irrationality of economic agents is not ent irely due to an inability
+to formally work with probabilities. One may in addition won der to what extent calcula-
+tions, conscious and deliberate, subconscious and automat ic, actually enter into decisions.
+Of more importance though may be the psychological twists th at the human mind is sub-
+jected to. If so, those twists, if properly understood will i n fact not be dismissed as mere
+irrationality, but instead be seen as a reﬁned version of it. Rationality is ultimately about
+a consistent way of pursuing your priorities, not necessari ly the setting of them. It is as
+with axioms, the choice is up to your discretion, but the cons istency is not. It seems to be
+a universally accepted maxim that a loss is harder to sustain than a gain, meaning that you
+are more likely to accept a small and secure beneﬁt than going for a more uncertain one.
+It is known as risk aversion. On the other hand, you do not want a sure loss, than you are
+more likely to gamble to avoid it, even at the risk of incurrin g an even greater loss. This
+causes the tendency to throw good money after bad. If you have invested a lot of money in
+a failing venture, you are reluctant to cut your losses, and i nstead trying to undo damage
+by investing even more. This is usually seen as irrational, m eaning, counterproductive. At
+least when it does not work. But what works for money does it wo rk for age? Would you
+rather settle for a ﬁnal age of say eighty rather than having a go at say a hundred with a
+suitable probability? Would you not then hold out for the pos sible rather than to settle
+for something deﬁnite? After all knowing a deﬁnite death dat e is more or less the same as
+a death sentence.
+Another psychological quirk is that equivalent proposals m ay meet with very diﬀerent
+responses, depending on wording and even ordering, when the two are being compared,
+This is irrational in the sense that proposals in isolation c annot be properly judged. A
+may be preferred to B when considered without any comparison , but B may prevail when
+you have to make a choice, even if the two are equivalent. You n eed to take in the entire
+context. The author talks about framing. As an example, my mo ther told me that she
+never felt any disappointment by not winning when she bought the intermittent lottery
+ticket. The likelihood of winning is very low, so you do not ex pect it, hence you are not
+disappointed when it does not happen. On the other hand, the m ere possibility of a win,
+is a pleasant thought, well worth the expenditure of the tick et. Of course this assessment
+is purely subjective and the reason why lotteries work. A mor e rational assessment of the
+worth of the ticket would take into account the expected valu e. But of course this is not
+how the human mind works, as opposed to that of the economic ag ent. Now assume that
+the tickets would be free, but whenever you do not win you woul d have an actual loss equal
+to the cost of the ticket you were prepared to pay in the ﬁrst pl ace. Would you still not
+experience not winning as a disappointment? Is it not easier to accept a voluntary cost
+than an involuntary loss, even if the amounts are the same?
+Perhaps the most interesting part of the book is the discussi on of the distinction
+between the experiencing self and the remembering self, which has existential philosophical
+ramiﬁcations that go much beyond the economic corollaries w hich it is meant to explain.
+I am thinking of the importance played by say regret in your ec onomic decisions. This
+7
+forces you to take into account two people, the one at present , and the one in some future,
+whose desires may impinge as much on yours now, as yours obvio usly do on his 10.
+As noted the distinction is more interesting from a philosop hical point. Who leads
+your life really? What is important in life? That you are happ y and have no regrets on
+your deathbed, or that you enjoy the moments, even if that enj oyment may be obliterated
+by inevitable oblivion? The remembered life sees existence as a sequence of episodes which
+should form some coherent narrative. Something has worth if it can be remembered with
+pleasure and satisfaction. Thus should you lead you life in s uch a way that it becomes
+a gripping biography which will be a pleasure to savor even fo r external readers? The
+latter if you think about it, it may strike you as both silly an d chilly, after all are not
+many of our most deeply felt emotions, private in the sense th at they cannot be shared
+and become universal and oﬃcial. The feeling that you life is your own and no one else
+owns it. Yet in fact many moral admonishments take on that vie w. You should lead a life
+that is exemplary. People who collect, clearly takes this vi ew of life to ﬁnding its meaning
+in its recollection. They actually invest for the future, bu ilding up an accumulation. But
+you cannot bring what you collect with you to the grave, the ca sket in which you are put
+does not come with additional storage space. This mania for c ollection does of course
+not conﬁne itself to material objects and gadgets. It could b e books, when you see with
+pleasure how many books you actually will read during your li fe, and every book purchased
+will be a saving for future days, and this conversion of time i nto reading, gives meaning to
+your life. Or it could be the collection of happy moments, who se real pleasure will reside
+more in recollection than actual experience.
+As to the diﬀerence between an experienced sensation and one merely recollected, one
+may, as the author does, look at pain. Pain is an experience th at only belongs to the actual
+moment, as little as you can readily experience the pain of ot hers, save by mere empathy,
+you cannot directly experience your own pains of the past. Yo u may recollect the amount
+of pain, if not its quality, and this assessment of pain, may c ontradict elementary logic.
+The same level of pain may be remembered diﬀerently dependin g on the context. Pain
+that you suspect is out to hurt you, becomes intolerable even at low levels, while pain
+which is for your good, you are far more easily to accept. Henc e in a sense, all torture is
+fundamentally mental not physical. Pain that is extended by a lower level of pain, may
+be more acceptable to memory, because it is the average pain, or more generally the total
+experience, that will matter, thus you may more easily antic ipate with equanimity a pain
+which is actually worse when experienced as well as more sust ained, if the total eﬀect is
+seen as more tolerable to memory.
+Anyway the distinction between the present self and the futu re one. The one which is
+in direct contact with reality and the one which is construct ed, is a most fascinating one.
+For one thing, would our memories of episodes be more powerfu l, both as to remembering
+10 As to making decisions you will not regret, the secret is, the author informs the reader, is not to put
+yourself in the position that you can in retrospect argue that had I but acte d as I could have had, this would
+not have happened. So either, when you are engaged in longterm momentous decisi ons, make them very
+deliberate, as to convince yourself in the future, that at the time you real ly did not have another option,
+or act without any deliberation at all, thus preempting any charge of not hav ing acted on something you
+had actually considered.
+8
+more episodes as well as being able to recall them with more in tensity and vividness,
+make up for shorter life-spans? We think that our lives are to o short, that time goes too
+quickly, especially as we get older, while we are experienci ng time there actually is no such
+diﬀerence, and time itself seems painfully slow. When we loo k back upon an event, it
+feels very satisfying that it seems to have happened a long ti me ago. because it gives the
+feeling that since then we have had a long life. So much must ha ve happened, so much
+must have changed. On the contrary if an event, chronologica lly distant, is felt as if have
+happened very recently, we feel cheated. All those years hav e passed and what do I have
+to show for it? Nothing seems to have happened, nothing seems to have changed, I have
+just squandered precious years which will never come back. S uch considerations cut at the
+heart of the human condition. The imagery is somewhat econom ic in nature. There is a
+feeling that life is a capital that is given to you, and which y ou can only spend, never add
+to. As you grow older, the capital is depleted, the only comfo rt being that you are not
+really sure when it will run out. The capital is exchanged for life and experience. While
+your prospect diminish, your experience accumulates and gr ows. When you come towards
+the end, any slice of time will be more proportionally precio us compared to what you have
+left, and what you get out of it will be proportionally insign iﬁcant compared to what you
+have already experienced. You pay more and more for getting l ess and less.
+February 14, 16, 2014 Ulf Persson: P rof.em , C halm ers U .of Tech., G ¨ oteb org Sweden ulfp@chalmers.se
+9

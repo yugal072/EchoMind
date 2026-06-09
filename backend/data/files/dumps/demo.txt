@@ -1,0 +1,161 @@
+# Name: Yugal Upadhayay
+# Lab 9
+# Roll No: 313023
+# PRN: 22310753
+# Div: C
+# Batch: C1
+
+import RPi.GPIO as GPIO
+from flask import Flask, render_template_string
+
+app = Flask(__name__)
+
+# -----------------------------
+# GPIO Setup
+# -----------------------------
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+ledRed = 13
+ledYellow = 19
+ledGreen = 26
+
+# Set all as outputs
+GPIO.setup(ledRed, GPIO.OUT)
+GPIO.setup(ledYellow, GPIO.OUT)
+GPIO.setup(ledGreen, GPIO.OUT)
+
+# Initialize all to LOW
+GPIO.output(ledRed, GPIO.LOW)
+GPIO.output(ledYellow, GPIO.LOW)
+GPIO.output(ledGreen, GPIO.LOW)
+
+
+# -----------------------------
+# HTML Template (Embedded)
+# -----------------------------
+html_template = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GPIO Control Web App</title>
+    <style>
+        body {
+            text-align: center;
+            background: #005f20;
+            color: #fff5ee;
+            font-family: Arial, sans-serif;
+        }
+        .button {
+            display: inline-block;
+            font: bold 16px Arial;
+            background-color: #eeeeee;
+            border-radius: 10px;
+            padding: 8px 16px;
+            margin: 5px;
+            border: 1px solid #cccccc;
+            text-decoration: none;
+            color: black;
+        }
+        h2 {
+            margin-top: 30px;
+        }
+        .status {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .on {
+            color: #00ff00;
+        }
+        .off {
+            color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <h2>LED CONTROL PANEL</h2>
+
+    <h3>RED LED is 
+        <span class="status {{ 'on' if ledRed else 'off' }}">
+            {{ 'ON' if ledRed else 'OFF' }}
+        </span>
+    </h3>
+    <a href="/ledRed/on" class="button">TURN ON</a>
+    <a href="/ledRed/off" class="button">TURN OFF</a>
+
+    <h3>YELLOW LED is 
+        <span class="status {{ 'on' if ledYellow else 'off' }}">
+            {{ 'ON' if ledYellow else 'OFF' }}
+        </span>
+    </h3>
+    <a href="/ledYellow/on" class="button">TURN ON</a>
+    <a href="/ledYellow/off" class="button">TURN OFF</a>
+
+    <h3>GREEN LED is 
+        <span class="status {{ 'on' if ledGreen else 'off' }}">
+            {{ 'ON' if ledGreen else 'OFF' }}
+        </span>
+    </h3>
+    <a href="/ledGreen/on" class="button">TURN ON</a>
+    <a href="/ledGreen/off" class="button">TURN OFF</a>
+</body>
+</html>
+"""
+
+
+# -----------------------------
+# Flask Routes
+# -----------------------------
+@app.route('/')
+def index():
+    ledRedSts = GPIO.input(ledRed)
+    ledYellowSts = GPIO.input(ledYellow)
+    ledGreenSts = GPIO.input(ledGreen)
+
+    templateData = {
+        'ledRed': ledRedSts,
+        'ledYellow': ledYellowSts,
+        'ledGreen': ledGreenSts
+    }
+    return render_template_string(html_template, **templateData)
+
+
+@app.route('/<deviceName>/<action>')
+def do(deviceName, action):
+    if deviceName == "ledRed":
+        actuator = ledRed
+    elif deviceName == "ledYellow":
+        actuator = ledYellow
+    elif deviceName == "ledGreen":
+        actuator = ledGreen
+    else:
+        return "Invalid device name!"
+
+    if action == "on":
+        GPIO.output(actuator, GPIO.HIGH)
+    elif action == "off":
+        GPIO.output(actuator, GPIO.LOW)
+    else:
+        return "Invalid action!"
+
+    ledRedSts = GPIO.input(ledRed)
+    ledYellowSts = GPIO.input(ledYellow)
+    ledGreenSts = GPIO.input(ledGreen)
+
+    templateData = {
+        'ledRed': ledRedSts,
+        'ledYellow': ledYellowSts,
+        'ledGreen': ledGreenSts
+    }
+    return render_template_string(html_template, **templateData)
+
+
+# -----------------------------
+# Run Flask Server
+# -----------------------------
+if __name__ == "__main__":
+    try:
+        app.run(host="0.0.0.0", port=5000, debug=True)
+    except KeyboardInterrupt:
+        print("\nExiting gracefully...")
+        GPIO.cleanup()
