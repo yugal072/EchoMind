@@ -16,7 +16,12 @@ def load_email_documents(max_results=20)->list[Document]:
     docs = []
     for e in parse_emails(max_results):
         text = f"Subject: {e['subject']}\nFrom:{e['from']}\nDate:{e['date']}\nText:{e['text']}"
-        docs.append(Document(page_content= text, metadata={"source":"gmail",**e}))
+        docs.append(Document(page_content= text, metadata={"source":"gmail",
+                                                           "id":e["id"],
+                                                           "subject":e["subject"],
+                                                           "from":e["from"],
+                                                           "date":e["date"]}
+                             ))
     return docs
 
 def load_file_documents()->list[Document]:
@@ -28,10 +33,16 @@ def load_file_documents()->list[Document]:
                     )
     return docs
 
-def load_pdf_documents()->list[Document]:
+def load_pdf_documents() -> list[Document]:
     docs = []
     for e in parse_pdfs():
-        docs.append(Document(page_content=e["text"], metadata={"source":"pdf", **e}))
+        flat_meta = {"source": "pdf"}
+        llama_meta = e.get("metadata")
+        if isinstance(llama_meta, dict):
+            for key, val in llama_meta.items():
+                if isinstance(val, (str, int, float, bool)) or val is None:
+                    flat_meta[key] = val
+        docs.append(Document(page_content=e["text"], metadata=flat_meta))
     return docs
 
 def run_ingestion()->list[Document]:
