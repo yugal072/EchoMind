@@ -42,6 +42,9 @@ prompt = ChatPromptTemplate.from_template(
     """
 )
 
+# This program reingest and remake the database everytime it runs. So whe need to make a new script 
+# independent of it so that it can run without intervention with the old db or stores
+
 def make_retrieval_chain(llm, embeddings):
     documents = run_ingestion()
     chunks = split_documents(documents)
@@ -55,6 +58,7 @@ def make_retrieval_chain(llm, embeddings):
     return retriever_chain
 
 
+# Trial run
 question= "what is the last email i got and from who?"
 
 
