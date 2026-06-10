@@ -10,4 +10,5 @@ llama-index
 llama-parse
 langchain_nvidia_ai_endpoints
 langchain-groq
+langchain-chroma
 chromadb
