@@ -1,16 +1,14 @@
 from pathlib import Path
 from langchain_core.documents import Document
 
-from parsers.email_parser import parse_emails
-from parsers.llama_parser import parse_pdfs
+from app.ingestion.parsers.email_parser import parse_emails
+from app.ingestion.parsers.llama_parser import parse_pdfs
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
+from app.core.config import VECTORSTORE_DIR, DUMPS_DIR
 
 
-# paths
-BASE = Path(__file__).resolve().parents[2]
-DUMPS = BASE/ "data"/"files"/"dumps"
-STORE = BASE/ "data"/"vectorstore"
+
 
 def load_email_documents(max_results=20)->list[Document]: 
     docs = []
@@ -26,7 +24,7 @@ def load_email_documents(max_results=20)->list[Document]:
 
 def load_file_documents()->list[Document]:
     docs=[]
-    for path in DUMPS.glob("*.txt"):
+    for path in DUMPS_DIR.glob("*.txt"):
         docs.append(Document(page_content=path.read_text(),
                              metadata={"source":"file", "path":str(path)}
                              )

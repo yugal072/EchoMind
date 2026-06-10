@@ -5,13 +5,13 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from llama_parse import LlamaParse
+from app.core.config import DUMPS_DIR, VECTORSTORE_DIR, BASE_DIR
 
 # Project root: backend/app/ingestion/parsers -> EchoMind/
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
 load_dotenv(PROJECT_ROOT / ".env")
 
-BASE = Path(__file__).resolve().parents[3]  # backend/
-DUMPS = BASE / "data" / "files" / "dumps"
+BASE = BASE_DIR  # backend/
 OUT = BASE / "data" / "parsed" / "pdfs"
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -36,9 +36,9 @@ def parse_pdfs():
 
     parser = LlamaParse(**parser_kwargs)
 
-    pdf_paths = [str(p) for p in DUMPS.glob("*.pdf")]
+    pdf_paths = [str(p) for p in DUMPS_DIR.glob("*.pdf")]
     if not pdf_paths:
-        sys.exit(f"No PDF files found in {DUMPS}")
+        sys.exit(f"No PDF files found in {DUMPS_DIR}. Add PDFs and re-run.")
 
     print(f"Parsing {len(pdf_paths)} file(s)...")
     documents = parser.load_data(pdf_paths)

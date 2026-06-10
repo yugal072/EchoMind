@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "connectors"))
 
-from gmails import list_recent_emails
+from app.ingestion.connectors.gmails import list_recent_emails
 
 
 BASE = Path(__file__).resolve().parents[3]

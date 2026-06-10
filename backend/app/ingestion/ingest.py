@@ -1,7 +1,7 @@
 # Run the Ingestion file everytime the new data is added or updated 
  
-from pipeline import run_ingestion, split_documents
-from RAG.index import get_vectorstore
+from app.ingestion.pipeline import run_ingestion, split_documents
+from app.RAG.index import get_vectorstore
 
 def build_index():
     """ Run this only when new data is added"""

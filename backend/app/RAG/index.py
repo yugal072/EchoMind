@@ -3,8 +3,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
+from app.core.config import VECTORSTORE_DIR, DUMPS_DIR
+
 BASE = Path(__file__).resolve().parents[2]
-STORE_PATH = str(BASE/ "data"/"vectorstore")
+STORE_PATH = str(VECTORSTORE_DIR)
 
 from langchain_nvidia_ai_endpoints import NVIDIAEmbeddings
 from langchain_groq import ChatGroq

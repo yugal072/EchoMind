@@ -4,26 +4,26 @@ from dotenv import load_dotenv
 from pathlib import Path
 load_dotenv()
 
-BASE = Path(__file__).resolve().parents[3]
-DUMPS = BASE/ "data"/"files"/"dumps"
-STORE = BASE/ "data"/"vectorstore"
+from app.core.config import VECTORSTORE_DIR, DUMPS_DIR, BASE_DIR
+
+BASE = BASE_DIR
+DUMPS = DUMPS_DIR
+STORE = VECTORSTORE_DIR
 persist_directory = str(STORE)
 
 APP_DIR =  Path(__file__).resolve().parents[2]
 INGESTION_DIR = APP_DIR/"ingestion"
 
-for p in (APP_DIR, INGESTION_DIR):
-    if str(p) not in sys.path:
-        sys.path.insert(0, str(p))
 
-from ingestion.pipeline import run_ingestion, split_documents
+
+from app.ingestion.pipeline import run_ingestion, split_documents
 
 from langchain_nvidia_ai_endpoints import NVIDIAEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_classic.chains.retrieval import create_retrieval_chain
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 from langchain_groq import ChatGroq
-from langchain_classic.prompts import PromptTemplate, ChatPromptTemplate
+from langchain_classic.prompts import  ChatPromptTemplate
 
 
 embeddings = NVIDIAEmbeddings()
