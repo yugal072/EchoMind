@@ -12,7 +12,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 def clean_html(html_content:str):
     if not html_content:
         return ""
-    soup = BeautifulSoup(html_content, "html_parser")
+    soup = BeautifulSoup(html_content, "html.parser")
     
     for tag in soup(["script", "style"]):
         tag.decompose()

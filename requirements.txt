@@ -12,3 +12,7 @@ langchain_nvidia_ai_endpoints
 langchain-groq
 langchain-chroma
 chromadb
+beautifulsoup4
+fastapi
+uvicorn 
+groq

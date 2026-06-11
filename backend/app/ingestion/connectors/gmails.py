@@ -86,5 +86,7 @@ def list_recent_emails(max_results=10):
 
 
 if __name__ == "__main__":
-    for email in list_recent_emails(5):
-        print(email)
+    emails = list_recent_emails(1)
+    print("SUBJECT:", emails[0]["subject"])
+    print("BODY:")
+    print(emails[0]["body"][:1000])

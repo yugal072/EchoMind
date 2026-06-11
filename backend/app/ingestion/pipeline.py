@@ -45,9 +45,16 @@ def load_pdf_documents() -> list[Document]:
 
 def run_ingestion()->list[Document]:
     all_docs = []
-    all_docs.extend(load_email_documents())
     all_docs.extend(load_file_documents())
-    all_docs.extend(load_pdf_documents())
+    email_docs = load_email_documents()
+    print("Emails:", len(email_docs))
+
+    pdf_docs = load_pdf_documents()
+    print("PDFs:", len(pdf_docs))
+    
+    all_docs.extend(email_docs)
+    all_docs.extend(pdf_docs)
+    
     return all_docs
 
 def split_documents(documents):
