@@ -1,21 +1,28 @@
 import json
-import sys
-from pathlib import Path
+from bs4 import BeautifulSoup
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "connectors"))
-
+from app.core.config import BASE_DIR, DATA_DIR
 from app.ingestion.connectors.gmails import list_recent_emails
 
 
-BASE = Path(__file__).resolve().parents[3]
-OUT = BASE / "data" / "parsed" / "emails"
+OUT = BASE_DIR / "data" / "parsed" / "emails"
 OUT.mkdir(parents=True, exist_ok=True)
 
-
+def clean_html(html_content:str):
+    if not html_content:
+        return ""
+    soup = BeautifulSoup(html_content, "html_parser")
+    
+    for tag in soup(["script", "style"]):
+        tag.decompose()
+    return soup.get_text(separator="\n").strip()
+    
 def parse_emails(max_results=10):
     parsed = []
     for email in list_recent_emails(max_results):
-        text = (email.get("body") or email.get("snippet") or "").strip()
+        raw_text = email.get("body") or email.get("snippet") or ""
+        text = clean_html(raw_text)
+
         parsed.append({
             "id": email["id"],
             "subject": email.get("subject", ""),
