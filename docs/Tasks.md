@@ -13,7 +13,7 @@ POST /ingest → trigger pipeline
 POST /chat → use rag/index.py + Groq LLM
 
 
-# Day 6–7: Add simple Gradio or Streamlit chat UI (fastest feedback)
+## Day 6–7: Add simple Gradio or Streamlit chat UI (fastest feedback)
 
 Week 1 Success Criteria: You can run the app locally, ingest new data, and chat with it via browser (not just CLI).
 

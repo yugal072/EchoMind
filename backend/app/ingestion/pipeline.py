@@ -1,5 +1,6 @@
 from pathlib import Path
 from langchain_core.documents import Document
+from bs4 import BeautifulSoup
 
 from app.ingestion.parsers.email_parser import parse_emails
 from app.ingestion.parsers.llama_parser import parse_pdfs
@@ -8,12 +9,18 @@ from langchain_community.vectorstores import Chroma
 from app.core.config import VECTORSTORE_DIR, DUMPS_DIR
 
 
+def clean_email_body(html_content: str) -> str:
+    """Convert HTML email to clean plain text"""
+    # Option A: BeautifulSoup
+    soup = BeautifulSoup(html_content, "html.parser")
+    text = soup.get_text(separator="\n", strip=True)
+    return text
 
 
 def load_email_documents(max_results=20)->list[Document]: 
     docs = []
     for e in parse_emails(max_results):
-        text = f"Subject: {e['subject']}\nFrom:{e['from']}\nDate:{e['date']}\nText:{e['text']}"
+        text = f"Subject: {e['subject']}\nFrom:{e['from']}\nDate:{e['date']}\nText:{clean_email_body(e['text'])}"
         docs.append(Document(page_content= text, metadata={"source":"gmail",
                                                            "id":e["id"],
                                                            "subject":e["subject"],
