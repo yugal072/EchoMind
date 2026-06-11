@@ -1,4 +1,5 @@
 import json
+import sys
 from bs4 import BeautifulSoup
 
 from app.core.config import BASE_DIR, DATA_DIR
