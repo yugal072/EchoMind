@@ -83,7 +83,8 @@ final_prompt = ChatPromptTemplate.from_messages([
 ])
     
 def get_rag_chain():
-    retriever = get_retriever()
+    vectorstore = get_vectorstore()
+    retriever = vectorstore.as_retriever()
     
     history_aware_retriever = create_history_aware_retriever(llm,retriever, contextual_prompt)
     
