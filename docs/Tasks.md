@@ -25,3 +25,18 @@ Improve metadata filtering (date, source type, sender)
 Polish README + add screenshots + demo video
 
 # Also take a look at the evals such as - context retrieval, token management and threshold management
+
+# Days 1–4 (Finish Phase 1b)
+
+Error handling + input validation
+Email HTML cleaning
+Async ingestion + status endpoint
+Pin requirements.txt
+Full end-to-end manual testing (ingest 5+ items → multi-turn chat)
+
+# Days 5–10 (Start Phase 2)
+
+Basic Evaluation Harness (10–15 questions + RAGAS/DeepEval)
+Metadata filtering (date, source, sender)
+Fix in-memory session store (add simple persistence or Redis)
+Improve README + add demo screenshots/video
