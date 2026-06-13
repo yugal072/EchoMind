@@ -1,5 +1,6 @@
 import json
 import sys
+import re
 from bs4 import BeautifulSoup
 
 from app.core.config import BASE_DIR, DATA_DIR
@@ -17,13 +18,38 @@ def clean_html(html_content:str):
     for tag in soup(["script", "style"]):
         tag.decompose()
     return soup.get_text(separator="\n").strip()
+
+def clean_email_text(text:str):
+    if not text:
+        return ""
+    # remove urls
+    text = re.sub(r"https?://\S+", "", text)
+    
+    # remove boilerplate
+    patterns = [
+        r"unsubscribe.*",  
+        r"privacy.*",
+        r"help.*",
+        r"learn why we included this.*",
+        r"all rights reserved.*",
+        r"copyright.*",
+        r"this email was intended for.*",
+        r"view in browser.*",    
+    ]
+    for pattern in patterns:
+        text = re.sub(pattern, "", text, flags = re.IGNORECASE)
+    # remove extra whitespace
+    text = re.sub(r"\n\s*\n+", "\n\n", text).strip()
+    return text
     
 def parse_emails(max_results=10):
     parsed = []
     for email in list_recent_emails(max_results):
         raw_text = email.get("body") or email.get("snippet") or ""
         text = clean_html(raw_text)
-
+        text = clean_email_text(text)
+        
+        
         parsed.append({
             "id": email["id"],
             "subject": email.get("subject", ""),

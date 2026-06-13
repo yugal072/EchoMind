@@ -18,21 +18,22 @@ def _get_header(headers, name):
 
 
 def _get_body(payload):
-    if payload.get("body", {}).get("data"):
-        data = payload["body"]["data"]
-        return base64.urlsafe_b64decode(data).decode("utf-8", errors="replace")
-
+    # First search for text/plain
     for part in payload.get("parts", []):
         if part.get("mimeType") == "text/plain":
             data = part.get("body", {}).get("data")
             if data:
                 return base64.urlsafe_b64decode(data).decode("utf-8", errors="replace")
-
+            
     for part in payload.get("parts", []):
         text = _get_body(part)
         if text:
             return text
 
+    if payload.get("body", {}).get("data"):
+        data = payload["body"]["data"]
+        return base64.urlsafe_b64decode(data).decode("utf-8", errors="replace")
+    
     return ""
 
 
@@ -75,6 +76,7 @@ def list_recent_emails(max_results=10):
         ).execute()
         headers = msg_data["payload"]["headers"]
         emails.append({
+            "source": "gmail",
             "id": msg["id"],
             "subject": _get_header(headers, "Subject") or "No Subject",
             "from": _get_header(headers, "From"),
