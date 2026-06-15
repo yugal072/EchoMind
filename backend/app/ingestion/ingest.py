@@ -2,16 +2,23 @@
  
 from app.ingestion.pipeline import run_ingestion, split_documents
 from app.RAG.index import get_vectorstore
+import asyncio
 
 async def build_index():
     """ Run this only when new data is added"""
     print("Starting Ingestion")
-    documents = run_ingestion()
-    chunks = split_documents(documents)
-    print(chunks)
-    vectorstore = get_vectorstore()
-    await vectorstore.add_documents(chunks)
-    print(f"✅ Added {len(chunks)} chunks to vectorstore")
+    try:
+        documents = run_ingestion()
+        chunks = split_documents(documents)
+        print(chunks)
+        vectorstore = get_vectorstore()
+        await vectorstore.aadd_documents(chunks)
+        print(f"✅ Added {len(chunks)} chunks to vectorstore")
+    except Exception as e:
+        print(f"❌ Ingestion failed: {e}")
+        raise
+
+
     
 if __name__ == "__main__":
-    build_index()
+    asyncio.run(build_index())

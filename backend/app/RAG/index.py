@@ -24,7 +24,7 @@ embeddings = NVIDIAEmbeddings()
 
 api_key = os.getenv("GROQ_API_KEY")
 
-llm = ChatGroq(model="llama-3.3-70b-versatile", api_key= os.getenv("GROQ_API_KEY"))
+llm = ChatGroq(model="meta-llama/llama-4-scout-17b-16e-instruct", api_key= os.getenv("GROQ_API_KEY"))
 
 system_prompt = (
     """ 
@@ -34,6 +34,8 @@ system_prompt = (
     - If the context doesn't have the exact answer, say what you found and what is missing.
     - Do NOT make up names, dates, or emails that are not in the context.
     - Be concise and helpful.
+    - If the context is empty, say you don't have enough information to answer.
+    - Try to answer the question in a way that is understandable to a 10-year-old.
     <context>
     {context}
     </context>
@@ -104,9 +106,15 @@ def ask(question:str, session_id:str = "default"):
     
     chain = get_rag_chain()
     response = chain.invoke({'input': question}, config={'configurable':{'session_id':session_id}})
+    
+    context = [
+        doc.page_content
+        for doc in response.get('context',[])
+    ]
     return {
         'answer': response['answer'],
-        'sources': [doc.metadata for doc in response.get('context', [])]
+        'sources': [doc.metadata for doc in response.get('context', [])],
+        'context':context
     }
     
     
@@ -114,4 +122,5 @@ def ask(question:str, session_id:str = "default"):
 if __name__ == "__main__":
     result = ask("What is Thinking fast and slow is about?")
     print("Answer:", result['answer'])
+    print("context:", result['context'])
     print("\nNumber of sources:", len(result['sources']))
