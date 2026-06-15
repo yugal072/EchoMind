@@ -1,6 +1,7 @@
 from pathlib import Path
 from langchain_core.documents import Document
 from bs4 import BeautifulSoup
+import hashlib
 
 from app.ingestion.parsers.email_parser import parse_emails, clean_html
 from app.ingestion.parsers.llama_parser import parse_pdfs
@@ -29,6 +30,15 @@ def load_email_documents(max_results=20)->list[Document]:
                              ))
     return docs
 
+def get_email_ids(chunks):
+    ids = []
+    for i, chunk in enumerate(chunks):
+        email_id = chunk.metadata.get("id", f"unknown_{i}")
+        content_hash = hashlib.md5(chunk.page_content.encode('utf-8')).hexdigest()[:12]
+        doc_id = f"email_{email_id}_{content_hash}"
+        ids.append(doc_id)
+    return ids
+
 def load_file_documents()->list[Document]:
     docs=[]
     for path in DUMPS_DIR.glob("*.txt"):
@@ -49,6 +59,26 @@ def load_pdf_documents() -> list[Document]:
                     flat_meta[key] = val
         docs.append(Document(page_content=e["text"], metadata=flat_meta))
     return docs
+
+def get_pdf_ids(chunks):
+    ids = []
+    for i, chunk in enumerate(chunks):
+        source = chunk.metadata.get("source", "unknown.pdf")
+        filename = Path(source).name
+        content_hash = hashlib.md5(chunk.page_content.encode('utf-8')).hexdigest()[:12]
+        doc_id = f"pdf_{filename}_{content_hash}"
+        ids.append(doc_id)
+    return ids
+
+def get_file_ids(chunks):
+    ids = []
+    for i, chunk in enumerate(chunks):
+        source = chunk.metadata.get("source", "unknown.txt")
+        filename = Path(source).name
+        content_hash = hashlib.md5(chunk.page_content.encode('utf-8')).hexdigest()[:12]
+        doc_id = f"file_{filename}_{content_hash}"
+        ids.append(doc_id)
+    return ids
 
 def run_ingestion()->list[Document]:
     all_docs = []
