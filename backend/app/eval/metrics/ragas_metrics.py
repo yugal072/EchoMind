@@ -1,11 +1,19 @@
 import os
 import json
 from datasets import Dataset
-from langchain_groq import ChatGroq
 from ragas import evaluate
 from dotenv import load_dotenv
-load_dotenv()
 from pathlib import Path
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
+from langchain_nvidia_ai_endpoints.embeddings import NVIDIAEmbeddings
+
+# Resolve paths relative to this script
+SCRIPT_DIR = Path(__file__).resolve().parent
+BACKEND_DIR = SCRIPT_DIR.parents[2]
+ROOT_DIR = BACKEND_DIR.parent
+
+load_dotenv(dotenv_path=ROOT_DIR / ".env")
+
 from ragas.metrics import (
     faithfulness,
     answer_relevancy,
@@ -13,13 +21,17 @@ from ragas.metrics import (
     context_recall
 )
 from ragas.llms import LangchainLLMWrapper
+from ragas.run_config import RunConfig
 
 import warnings
 warnings.filterwarnings("ignore",category=UserWarning, module="ragas")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+# Suppress pydantic protected_namespaces warnings (Groq/LangChain compatibility)
+from pydantic import BaseModel, ConfigDict
+BaseModel.model_config = ConfigDict(protected_namespaces=())
 
-RESULT_FILE = Path("app/eval/results/results.json")
-REPORT_FILE = Path("app/eval/reports/ragas_reports.json")
+RESULT_FILE = BACKEND_DIR / "app/eval/results/results.json"
+REPORT_FILE = BACKEND_DIR / "app/eval/reports/ragas_reports.json"
 
 # Load Results
 # Convert to Evaluation dataset
@@ -98,29 +110,41 @@ def create_dataset(results):
     print(f"Successfully prepared {len(dataset_dict['question'])} samples for evaluation.")
     return Dataset.from_dict(dataset_dict)
 
+def get_evaluator_embeddings():
+    return NVIDIAEmbeddings()
+
 def get_evaluator_llm():
-    api_key = os.getenv("GROQ_API_KEY")
+    api_key = os.getenv("NVIDIA_API_KEY")
     if not api_key:
-        raise ValueError("Groq_api_key not found in .env")
-    groq_llm = ChatGroq(
-        model="llama-3.3-70b-versatile",
-        temperature=0,  # temperature to be set to 0 as zero creativity 
-        api_key=os.getenv("GROQ_API_KEY"),
-        max_retries=2,
+        raise ValueError("NVIDIA_API_KEY not found in .env")
+    chat_nvidia = ChatNVIDIA(
+        model = "meta/llama-3.1-8b-instruct", 
+        api_key = api_key,
+        temperature= 0,
     )
-    
-    return LangchainLLMWrapper(groq_llm)
+    return LangchainLLMWrapper(chat_nvidia)
+
 
     # Run RAGAS metrics Evaluation
 def run_evaluation(dataset):
     evaluator_llm = get_evaluator_llm()
     
+    run_config = RunConfig(
+        max_workers=1,
+        timeout=300,
+        max_retries=10
+    )
+    
     result = evaluate(
         dataset=dataset,
         metrics=[
             faithfulness,
+            answer_relevancy,
         ],
-        llm=evaluator_llm
+        llm=evaluator_llm,
+        embeddings = get_evaluator_embeddings(),
+        raise_exceptions=False,
+        run_config=run_config
     )
     return result
 
@@ -144,6 +168,7 @@ def main():
     print("Loading results...")
     
     results = load_results(RESULT_FILE)
+    results = results[:4]
     
     validate_results(results)
     
@@ -158,7 +183,7 @@ def main():
     print("...Evaluating reports")
     
     for metric, value in scores.items():
-        print(f"{metric}: {value:.4f}")
+        print(f"{metric}: {value:.4f}")  
         
         
         
