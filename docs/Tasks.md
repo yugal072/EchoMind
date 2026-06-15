@@ -40,3 +40,8 @@ Basic Evaluation Harness (10–15 questions + RAGAS/DeepEval)
 Metadata filtering (date, source, sender)
 Fix in-memory session store (add simple persistence or Redis)
 Improve README + add demo screenshots/video
+
+
+
+
+

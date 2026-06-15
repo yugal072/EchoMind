@@ -1,4 +1,4 @@
-# EchoMind — Project Progress Review (Updated 2026-06-12)
+# EchoMind — Project Progress Review (Updated 2026-06-15)
 
 This document reflects the current state of the project versus the Scope.md MVP (target ~21 June 2026).
 
@@ -34,6 +34,15 @@ This document reflects the current state of the project versus the Scope.md MVP 
 You now have a **working local system**: ingest → chunk → embed → retrieve → answer, with a web UI and API backend. The core RAG pipeline is operational and multi-turn capable. End-to-end functionality is demonstrated; stability and production hardening remain.
 
 ---
+
+### Phase 1b — Polish & Stabilization (Current Status)
+
+- ✅ Error handling added to FastAPI endpoints.
+- ✅ HTML cleaning integrated using BeautifulSoup.
+- ✅ Async ingestion implemented with BackgroundTasks.
+- ✅ Requirements.txt pinned with versions.
+- ✅ End-to-end manual testing completed.
+
 
 ## What is NEWLY BUILT (Since last report)
 
