@@ -140,6 +140,8 @@ def run_evaluation(dataset):
         metrics=[
             faithfulness,
             answer_relevancy,
+            context_precision,
+            context_recall
         ],
         llm=evaluator_llm,
         embeddings = get_evaluator_embeddings(),
