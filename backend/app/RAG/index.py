@@ -11,10 +11,11 @@ STORE_PATH = str(VECTORSTORE_DIR)
 from langchain_nvidia_ai_endpoints import NVIDIAEmbeddings
 from langchain_groq import ChatGroq
 from langchain_chroma import Chroma
-from langchain_classic.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_classic.chains.combine_documents import create_stuff_documents_chain
-from langchain_classic.chains.retrieval import create_retrieval_chain
-from langchain_classic.chains.history_aware_retriever import create_history_aware_retriever
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains.retrieval import create_retrieval_chain
+from langchain.chains.history_aware_retriever import create_history_aware_retriever
+
 
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
@@ -28,22 +29,19 @@ llm = ChatGroq(model="meta-llama/llama-4-scout-17b-16e-instruct", api_key= os.ge
 
 system_prompt = (
     """ 
-    You are EchoMind, a precise personal knowledge assistant.
-    Use the provided context to answer the user's question.
-    - If the context contains relevant information, summarize it clearly and mention sources.
-    - If the context doesn't have the exact answer, say what you found and what is missing.
-    - Do NOT make up names, dates, or emails that are not in the context.
-    - Be concise and helpful.
-    - If the context is empty, say you don't have enough information to answer.
-    - Try to answer the question in a way that is understandable to a 10-year-old.
+    You are EchoMind, a precise and trustworthy personal knowledge assistant.
+    **Strict Rules:**
+    - Answer **only** using information present in the provided context.
+    - Be **direct, concise, and exact**. Do not add extra explanations unless asked.
+    - If the context does not contain the answer, reply exactly: "I don't have enough information in my knowledge base to answer this."
+    - Do NOT make up any names, dates, emails, facts, or details.
+    - Do NOT say "Based on the context" or "According to the documents" in the final answer.
+    - Stay strictly relevant to the user's question. Do not add unrelated information.
     <context>
     {context}
     </context>
     """
 )
-
-
-
 
 
 def get_vectorstore():
@@ -53,7 +51,7 @@ def get_vectorstore():
         embedding_function=embeddings
     )
     
-def get_retriever(k:int =6):
+def get_retriever(k:int =4):
     vectorstore = get_vectorstore()
     return vectorstore.as_retriever(
         search_type = 'similarity',
@@ -71,7 +69,7 @@ def get_session_history(session_id: str) -> BaseChatMessageHistory:
 # Contextual Promppt to reframe the context based on the previous and present questions and responses
 
 contextual_prompt = ChatPromptTemplate.from_messages([
-    ('system', "Rephrase the question to be a standalone question"),
+    ('system', "Rephrase the following question to be a standalone question that captures all necessary contents."),
     MessagesPlaceholder('chat_history'),
     ('human', "{input}"),
 ])
@@ -120,7 +118,7 @@ def ask(question:str, session_id:str = "default"):
     
 # For testing 
 if __name__ == "__main__":
-    result = ask("What is Thinking fast and slow is about?")
+    result = ask("What is the last email i received regarding placement?")
     print("Answer:", result['answer'])
     print("context:", result['context'])
     print("\nNumber of sources:", len(result['sources']))
