@@ -27,8 +27,8 @@ async def http_exception_handler(request:Request, exc:HTTPException):
     )
     
 class ChatRequest(BaseModel):
-    question: str = Field(..., min_len=1, max_len = 600, description="The question to ask the RAG system.")
-    session_id: str = Field(..., min_len = 1, max_len = 100)
+    question: str = Field(..., min_length=1, max_length=600, description="The question to ask the RAG system.")
+    session_id: str = Field(..., min_length=1, max_length=100)
     
 @app.post("/ingest")
 async def ingest_data(background_tasks: BackgroundTasks):
@@ -51,8 +51,8 @@ async def chat(request: ChatRequest):
         if not request.question.strip():
             raise HTTPException(status_code=400, detail="Question cannot be empty.")
         
-        answer, sources =  ask(request.question, session_id=request.session_id)
-        return {"answer": answer, "sources": sources, "session_id": request.session_id}
+        result = ask(request.question, session_id=request.session_id)
+        return {"answer": result["answer"], "sources": result["sources"], "session_id": request.session_id}
     except HTTPException:
         raise # auto handled by FastAPI
     except Exception as e:
