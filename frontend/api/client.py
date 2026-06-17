@@ -3,6 +3,22 @@
 import requests
 BASE_URL = "http://localhost:8000"  # Change this to your AWS endpoint when deployed
 
+def upload(uploaded_files):
+    files_payload = [
+        (
+            "files",
+            (
+                file.name,
+                file.getvalue(),
+                file.type
+            )
+        )
+        for file in uploaded_files
+    ]
+    
+    response = requests.post(f"{BASE_URL}/upload", files=files_payload)
+    return response.json()
+
 def ingest():
     response = requests.post(f"{BASE_URL}/ingest")
     return response.json()
