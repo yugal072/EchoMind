@@ -1,9 +1,11 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from typing import Optional, Dict
 load_dotenv()
 
 from app.core.config import VECTORSTORE_DIR, DUMPS_DIR
+from app.RAG.metadatas.filters import build_metadata_filter
 
 BASE = Path(__file__).resolve().parents[2]
 STORE_PATH = str(VECTORSTORE_DIR)
@@ -30,13 +32,29 @@ llm = ChatGroq(model="meta-llama/llama-4-scout-17b-16e-instruct", api_key= os.ge
 system_prompt = (
     """ 
     You are EchoMind, a precise and trustworthy personal knowledge assistant.
-    **Strict Rules:**
+    **Core Rules:**
     - Answer **only** using information present in the provided context.
-    - Be **direct, concise, and exact**. Do not add extra explanations unless asked.
-    - If the context does not contain the answer, reply exactly: "I don't have enough information in my knowledge base to answer this."
-    - Do NOT make up any names, dates, emails, facts, or details.
+    - Be **direct, concise, and accurate**. Avoid unnecessary explanations.
+    - If the context does not contain enough information, reply exactly: "I don't have enough information in my knowledge base to answer this."
+    - Do NOT hallucinate names, dates, emails, or any facts.
     - Do NOT say "Based on the context" or "According to the documents" in the final answer.
-    - Stay strictly relevant to the user's question. Do not add unrelated information.
+
+    **Advanced Capability - Smart Filtering:**
+    You can understand natural language requests that imply filters. 
+    When the user mentions dates, senders, subjects, or document types, intelligently extract and focus on the most relevant documents from the context.
+
+    Examples of user intent:
+    - "emails from placement" → focus on source=gmail and sender containing "placement"
+    - "last email about internship" → look for recent emails with "internship" in subject or body
+    - "What happened on 10/06/2026" → prioritize documents with date around 10 June 2026
+    - "PDFs about project X" → focus on source=pdf and subject/filename containing "project X"
+
+    **Response Style:**
+    - Be helpful and natural.
+    - If multiple relevant documents exist, summarize the key points clearly.
+    - Use bullet points only when it improves readability.
+    - Stay strictly relevant to what the user asked.
+        
     <context>
     {context}
     </context>
@@ -51,14 +69,26 @@ def get_vectorstore():
         embedding_function=embeddings
     )
     
-def get_retriever(k:int =4):
-    vectorstore = get_vectorstore()
-    return vectorstore.as_retriever(
-        search_type = 'similarity',
-        search_kwargs = {'k':k}
+def get_retriever(vectorstore, 
+                  k:int =6,
+                  score_threshold: float=0.1,
+                  metadata_filter: Optional[Dict]= None):
+    
+    print(f"DEBUG - Applying filter: {metadata_filter}")   # Important debug
+    
+    search_kwargs = {"k":k, "score_threshold":score_threshold}
+    
+    if metadata_filter:
+        search_kwargs["filter"] = metadata_filter
+    
+    retriever = vectorstore.as_retriever(
+        search_type="similarity_score_threshold",
+        search_kwargs=search_kwargs
     )
-    
-    
+    return retriever
+
+
+
 store={}
 def get_session_history(session_id: str) -> BaseChatMessageHistory:
     if session_id not in store:
@@ -82,9 +112,28 @@ final_prompt = ChatPromptTemplate.from_messages([
     ('human', "{input}"),
 ])
     
-def get_rag_chain():
+VALID_FILTER_KEYS = {"source", "sender", "subject", "date_after", "date_before", "document_type"}
+
+def get_rag_chain(**filter_kwargs):
     vectorstore = get_vectorstore()
-    retriever = vectorstore.as_retriever()
+    clean_kwargs = {}
+    for k, v in filter_kwargs.items():
+        if k not in VALID_FILTER_KEYS:
+            continue
+        if v is not None:
+            cleaned = str(v).strip()
+            if cleaned and cleaned.lower() not in ["none", "null", "()", "(none,)"]:
+                clean_kwargs[k] = cleaned
+    
+    print(f"DEBUG - Cleaned kwargs: {clean_kwargs}")
+    
+    metadata_filter = build_metadata_filter(**clean_kwargs) if clean_kwargs else None          # creating filters from filters.py only when parameters are given
+    print(f"DEBUG - Final filter: {metadata_filter}")
+    
+    retriever = get_retriever(vectorstore=vectorstore, 
+                              metadata_filter=metadata_filter,
+                              k=6
+                              )
     
     history_aware_retriever = create_history_aware_retriever(llm,retriever, contextual_prompt)
     
@@ -100,9 +149,54 @@ def get_rag_chain():
     )
     return conversational_rag_chain
 
-def ask(question:str, session_id:str = "default"):
+
+
+filter_extraction_prompt = ChatPromptTemplate.from_messages([
+    ("system", """You are an expert at extracting search filters from user questions.
+
+Extract the following filters if mentioned:
+- source: "gmail", "pdf", or "file"
+- sender: email address or name
+- subject: keyword from subject
+- date_after: date in YYYY-MM-DD format
+- date_before: date in YYYY-MM-DD format
+
+Return ONLY a valid JSON object. If nothing is mentioned, return empty object.
+
+Example:
+User: "Show me placement emails from last week"
+Output: {{"source": "gmail", "subject": "placement"}}
+
+User: "What emails did I receive on 10/06/2026?"
+Output: {{"source": "gmail", "date_after": "2026-06-10", "date_before": "2026-06-10"}}
+"""),
+    ("human", "{input}")
+])
+
+
+def extract_filters(question: str) -> Dict:
+    chain = filter_extraction_prompt | llm
+    response = chain.invoke({"input": question})
     
-    chain = get_rag_chain()
+    try:
+        import json
+        filters = json.loads(response.content)
+        print(f"Extracted filters: {filters}")   # Debug
+        return filters
+    except:
+        print("Failed to parse filters, using no filter")
+        return {}
+    
+    
+    
+def ask(question:str, session_id:str = "default", **filter_kwargs):
+    print(f"Question: {question}")
+    extracted_filters = extract_filters(question)
+    print(f"Extraced filters: {extracted_filters}")
+    
+    final_filters = {**extracted_filters, **filter_kwargs}
+    
+    chain = get_rag_chain(**final_filters)
     response = chain.invoke({'input': question}, config={'configurable':{'session_id':session_id}})
     
     context = [
@@ -118,7 +212,7 @@ def ask(question:str, session_id:str = "default"):
     
 # For testing 
 if __name__ == "__main__":
-    result = ask("What is the last email i received regarding placement?")
+    result = ask(question="What email did i receive from placement cell?",)
     print("Answer:", result['answer'])
     print("context:", result['context'])
     print("\nNumber of sources:", len(result['sources']))

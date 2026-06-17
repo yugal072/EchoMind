@@ -1,9 +1,11 @@
 from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
 from fastapi.responses import JSONResponse
 import logging
+from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field
 from app.RAG.index import ask
 from app.ingestion.ingest import build_index
+from app.RAG.metadatas.filters import build_metadata_filter
 
 #setup basic logging
 logging.basicConfig(level=logging.INFO)
@@ -28,7 +30,13 @@ async def http_exception_handler(request:Request, exc:HTTPException):
     
 class ChatRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=600, description="The question to ask the RAG system.")
-    session_id: str = Field(..., min_length=1, max_length=100)
+    session_id: str = Field(..., min_length=1, max_length=100),
+    source: Optional[str]= None,
+    sender: Optional[str]=None,
+    subject: Optional[str] = None,
+    date_after: Optional[str] = None,
+    date_before: Optional[str]=None,
+    document_type: Optional[str]=None
     
 @app.post("/ingest")
 async def ingest_data(background_tasks: BackgroundTasks):
@@ -51,7 +59,16 @@ async def chat(request: ChatRequest):
         if not request.question.strip():
             raise HTTPException(status_code=400, detail="Question cannot be empty.")
         
-        result = ask(request.question, session_id=request.session_id)
+        result = ask(
+            question=request.question,
+            session_id=request.session_id,
+            source=request.source,              # raw values
+            sender=request.sender,
+            subject=request.subject,
+            date_after=request.date_after,
+            date_before=request.date_before,
+            document_type=request.document_type
+        )
         return {"answer": result["answer"], "sources": result["sources"], "session_id": request.session_id}
     except HTTPException:
         raise # auto handled by FastAPI

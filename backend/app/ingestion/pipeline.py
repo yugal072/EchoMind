@@ -2,6 +2,7 @@ from pathlib import Path
 from langchain_core.documents import Document
 from bs4 import BeautifulSoup
 import hashlib
+from datetime import datetime
 
 from app.ingestion.parsers.email_parser import parse_emails, clean_html
 from app.ingestion.parsers.llama_parser import parse_pdfs
@@ -26,7 +27,9 @@ def load_email_documents(max_results=20)->list[Document]:
                                                            "id":e["id"],
                                                            "subject":e["subject"],
                                                            "from":e["from"],
-                                                           "date":e["date"]}
+                                                           "date":e["date"],
+                                                           "ingested_at": datetime.now().isoformat(),
+                                                           "document_type":"email"}
                              ))
     return docs
 
@@ -42,22 +45,56 @@ def get_email_ids(chunks):
 def load_file_documents()->list[Document]:
     docs=[]
     for path in DUMPS_DIR.glob("*.txt"):
-        docs.append(Document(page_content=path.read_text(),
-                             metadata={"source":"file", "path":str(path)}
-                             )
-                    )
+        try:
+            content = path.read_text(encoding="utf-8")
+            
+            doc = Document(
+                page_content=content,
+                metadata={
+                    "source": "file",
+                    "document_type": "text",
+                    "filename": path.name,
+                    "path": str(path),
+                    "ingested_at": datetime.now().isoformat(),
+                    "file_size": len(content),                    # useful for debugging
+                    "extension": ".txt",
+                }
+            )
+            docs.append(doc)
+        except Exception as e:
+            print(f"Error loading {path}: {e}")
+            continue
     return docs
 
 def load_pdf_documents() -> list[Document]:
     docs = []
     for e in parse_pdfs():
-        flat_meta = {"source": "pdf"}
-        llama_meta = e.get("metadata")
-        if isinstance(llama_meta, dict):
-            for key, val in llama_meta.items():
-                if isinstance(val, (str, int, float, bool)) or val is None:
-                    flat_meta[key] = val
-        docs.append(Document(page_content=e["text"], metadata=flat_meta))
+        try:
+            text = e.get("text","")
+            llama_meta = e.get("metadata", {}) if isinstance(e.get("metadata"), dict) else {}
+            
+            flat_meta = {"source": "pdf",
+                         "document_type":"pdf",
+                         "filename":llama_meta.get("file_name") or llama_meta.get("name") or "unknown.pdf",
+                         "ingested_at":datetime.now().isoformat(),
+                         "page_count":llama_meta.get("total_pages", 1),
+                         "file_size":len(text)
+                         }
+           
+            for key in ["title", "author", "creation_date", "mod_date", "page_number"]:
+                if key in llama_meta and llama_meta[key]:
+                    flat_meta[key] = llama_meta[key]
+            
+            doc = Document(
+                page_content=text,
+                metadata=flat_meta
+            )
+            docs.append(doc)
+            
+        except Exception as e:
+            print(f"Error processing PDF document: {e}")
+            continue
+            
     return docs
 
 def get_pdf_ids(chunks):

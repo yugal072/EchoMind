@@ -36,8 +36,10 @@ def build_index():
             vectorstore.add_documents(documents=file_chunks, ids = file_ids)
         
         total= len(pdf_chunks)+ len(email_chunks) + len(file_chunks)
+        total_chunks = vectorstore._collection.count()
         
         print(f"✅ Added {total} chunks to vectorstore")
+        print(f"✅ Total chunks in vectorstore now: {total_chunks}")
     except Exception as e:
         print(f"❌ Ingestion failed: {e}")
         raise
