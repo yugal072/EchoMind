@@ -1,11 +1,17 @@
-from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Request, BackgroundTasks, UploadFile, File
+
 from fastapi.responses import JSONResponse
 import logging
 from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field
+
 from app.RAG.index import ask
 from app.ingestion.ingest import build_index
 from app.RAG.metadatas.filters import build_metadata_filter
+
+from app.ingestion.loaders.upload_loader import parse_uploaded_file
+from app.RAG.index import get_vectorstore
+from app.ingestion.loaders.vector_ingestion import ingest_documents
 
 #setup basic logging
 logging.basicConfig(level=logging.INFO)
@@ -38,6 +44,34 @@ class ChatRequest(BaseModel):
     date_before: Optional[str]=None,
     document_type: Optional[str]=None
     
+@app.post("/upload")
+async def upload_files(files: list[UploadFile]= File(...)):
+    try:
+        total_chunks=0
+        for file in files:
+            
+            documents = parse_uploaded_file(file)
+            print(len(documents))
+            print(documents[0].metadata)
+            
+            chunk_count = ingest_documents(documents, prefix="upload") # the function is of ingest documents but it returns number of chunks
+            vectorstore= get_vectorstore()
+            
+            print("TOTAL DOCS:", vectorstore._collection.count())
+            total_chunks+=chunk_count
+            
+        return {
+            "status":"success",
+            "filename":file.filename,
+            "chunks_added": total_chunks
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )    
+
+
 @app.post("/ingest")
 async def ingest_data(background_tasks: BackgroundTasks):
     try:
