@@ -10,6 +10,10 @@ from app.ingestion.pipeline import (
                                     get_pdf_ids)
 from app.RAG.index import get_vectorstore
 
+    
+        
+    
+
 def build_index():
     """ Run this only when new data is added"""
     print("Starting Ingestion")

@@ -7,7 +7,7 @@ from datetime import datetime
 from app.ingestion.parsers.email_parser import parse_emails, clean_html
 from app.ingestion.parsers.llama_parser import parse_pdfs
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from app.core.config import VECTORSTORE_DIR, DUMPS_DIR
 
 
