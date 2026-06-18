@@ -36,12 +36,12 @@ async def http_exception_handler(request:Request, exc:HTTPException):
     
 class ChatRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=600, description="The question to ask the RAG system.")
-    session_id: str = Field(..., min_length=1, max_length=100),
-    source: Optional[str]= None,
-    sender: Optional[str]=None,
-    subject: Optional[str] = None,
-    date_after: Optional[str] = None,
-    date_before: Optional[str]=None,
+    session_id: str = Field(..., min_length=1, max_length=100)
+    source: Optional[str]= None
+    sender: Optional[str]=None
+    subject: Optional[str] = None
+    date_after: Optional[str] = None
+    date_before: Optional[str]=None
     document_type: Optional[str]=None
     
 @app.post("/upload")
@@ -103,7 +103,7 @@ async def chat(request: ChatRequest):
             date_before=request.date_before,
             document_type=request.document_type
         )
-        return {"answer": result["answer"], "sources": result["sources"], "session_id": request.session_id}
+        return {"answer": result["answer"], "sources": result["sources"], "session_id": request.session_id, "token_usage": result['token_usage']} #, "output_tokens": result['output_tokens'], "total_tokens":result['total_tokens']}
     except HTTPException:
         raise # auto handled by FastAPI
     except Exception as e:

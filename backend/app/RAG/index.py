@@ -3,6 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from typing import Optional, Dict
 load_dotenv()
+import json, re
 
 from app.core.config import VECTORSTORE_DIR, DUMPS_DIR
 from app.RAG.metadatas.filters import build_metadata_filter
@@ -71,7 +72,7 @@ def get_vectorstore():
     
 def get_retriever(vectorstore, 
                   k:int =6,
-                  score_threshold: float=0.1,
+                  score_threshold: float=0.05,
                   metadata_filter: Optional[Dict]= None):
     
     print(f"DEBUG - Applying filter: {metadata_filter}")   # Important debug
@@ -112,63 +113,140 @@ final_prompt = ChatPromptTemplate.from_messages([
     ('human', "{input}"),
 ])
     
+    
+FUZZY_DATE_VALUES = {"recent", "latest", "today", "now", "last week", "this week"}
+
+def _resolve_date(value: str) -> Optional[str]:
+    """Convert fuzzy date strings to ISO format, drop unresolvable ones."""
+    from datetime import datetime, timedelta
+    v = value.lower().strip()
+    today = datetime.utcnow()
+    
+    mapping = {
+        "today": today,
+        "now": today,
+        "recent": today - timedelta(days=7),   # treat "recent" as last 7 days
+        "latest": today - timedelta(days=7),
+        "last week": today - timedelta(days=7),
+        "this week": today - timedelta(days=7),
+    }
+    if v in mapping:
+        return mapping[v].strftime("%Y-%m-%d")
+    
+    # Try parsing as a real date
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%m/%d/%Y", "%d-%m-%Y"):
+        try:
+            return datetime.strptime(value, fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    
+    # Unresolvable — drop it
+    print(f"⚠️ Could not resolve date value '{value}', dropping filter.")
+    return None
+    
+    
 VALID_FILTER_KEYS = {"source", "sender", "subject", "date_after", "date_before", "document_type"}
 
-def get_rag_chain(**filter_kwargs):
+def get_rag_chain(filter_dict: Optional[Dict] = None):
     vectorstore = get_vectorstore()
-    clean_kwargs = {}
-    for k, v in filter_kwargs.items():
-        if k not in VALID_FILTER_KEYS:
-            continue
-        if v is not None:
+    print(f"DEBUG - Raw filter_dict received: {filter_dict}")
+
+    EXACT_FILTER_KEYS = {"source", "sender", "document_type"}
+    DATE_FILTER_KEYS  = {"date_after", "date_before"}
+
+    subject_hint = None   # goes to query augmentation, never to Chroma filter
+    clean_kwargs  = {}    # only exact/range fields go here
+
+    if filter_dict:
+        for k, v in filter_dict.items():
+            if isinstance(v, tuple) and len(v) == 1:
+                v = v[0]
+            if v is None:
+                continue
             cleaned = str(v).strip()
-            if cleaned and cleaned.lower() not in ["none", "null", "()", "(none,)"]:
+            if not cleaned or cleaned.lower() in ["none", "null", "", "()", "(none,)"]:
+                continue
+
+            if k == "subject":
+                subject_hint = cleaned          # ← extracted, NOT filtered
+            elif k in EXACT_FILTER_KEYS:
                 clean_kwargs[k] = cleaned
-    
-    print(f"DEBUG - Cleaned kwargs: {clean_kwargs}")
-    
-    metadata_filter = build_metadata_filter(**clean_kwargs) if clean_kwargs else None          # creating filters from filters.py only when parameters are given
-    print(f"DEBUG - Final filter: {metadata_filter}")
-    
-    retriever = get_retriever(vectorstore=vectorstore, 
-                              metadata_filter=metadata_filter,
-                              k=6
-                              )
-    
-    history_aware_retriever = create_history_aware_retriever(llm,retriever, contextual_prompt)
-    
-    document_chain = create_stuff_documents_chain(llm=llm, prompt = final_prompt)
-    retrieval_chain = create_retrieval_chain(history_aware_retriever, document_chain)
-    
+            elif k in DATE_FILTER_KEYS:
+                resolved = _resolve_date(cleaned)
+                if resolved:
+                    clean_kwargs[k] = resolved
+            # Any unrecognised key is silently dropped
+
+    print(f"DEBUG - Chroma filter kwargs : {clean_kwargs}")
+    print(f"DEBUG - Subject hint (vector): {subject_hint}")
+
+    metadata_filter = build_metadata_filter(**clean_kwargs) if clean_kwargs else None
+    print(f"DEBUG - Final filter         : {metadata_filter}")
+
+    retriever = get_retriever(
+        vectorstore=vectorstore,
+        metadata_filter=metadata_filter,
+        k=8,
+        score_threshold=0.05,
+    )
+
+    # ── Inject subject_hint into the contextualisation prompt ──────────────
+    # This steers the history-aware rephrasing step so the standalone question
+    # explicitly mentions the subject keyword, improving vector recall.
+    effective_contextual_prompt = contextual_prompt
+    if subject_hint:
+        effective_contextual_prompt = ChatPromptTemplate.from_messages([
+            (
+                "system",
+                f"Rephrase the following question to be a standalone question that "
+                f"captures all necessary context. Make sure the rephrased question "
+                f"explicitly mentions the topic: '{subject_hint}'."
+            ),
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}"),
+        ])
+
+    history_aware_retriever = create_history_aware_retriever(
+        llm, retriever, effective_contextual_prompt
+    )
+    document_chain        = create_stuff_documents_chain(llm=llm, prompt=final_prompt)
+    retrieval_chain       = create_retrieval_chain(history_aware_retriever, document_chain)
+
     conversational_rag_chain = RunnableWithMessageHistory(
         retrieval_chain,
         get_session_history=get_session_history,
         input_messages_key="input",
         history_messages_key="chat_history",
-        output_messages_key="answer"
+        output_messages_key="answer",
     )
     return conversational_rag_chain
 
 
 
 filter_extraction_prompt = ChatPromptTemplate.from_messages([
-    ("system", """You are an expert at extracting search filters from user questions.
+    ("system", """You are a FILTER EXTRACTION BOT. 
 
-Extract the following filters if mentioned:
-- source: "gmail", "pdf", or "file"
-- sender: email address or name
-- subject: keyword from subject
-- date_after: date in YYYY-MM-DD format
-- date_before: date in YYYY-MM-DD format
+YOUR ONLY JOB IS TO RETURN A VALID JSON OBJECT. NOTHING ELSE. NO EXPLANATIONS.
 
-Return ONLY a valid JSON object. If nothing is mentioned, return empty object.
+Rules:
+- If the question is a **general knowledge question** (like "who is the author", "what is the book about", "summarize", etc.), return exactly: {{}}
+- Only return filters if the user is clearly asking for **specific documents** (emails, PDFs, files).
+- Valid keys: "source", "sender", "subject", "date_after", "date_before"
+- source can only be "gmail", "pdf", or "file"
 
-Example:
-User: "Show me placement emails from last week"
+Examples:
+
+User: "What placement related emails did I receive?"
 Output: {{"source": "gmail", "subject": "placement"}}
 
-User: "What emails did I receive on 10/06/2026?"
-Output: {{"source": "gmail", "date_after": "2026-06-10", "date_before": "2026-06-10"}}
+User: "Show me emails from placement cell"
+Output: {{"source": "gmail", "sender": "placement"}}
+
+User: "Who is the author of Thinking Fast and Slow?"
+Output: {{"source": "pdf", "subject": "Thinking Fast and Slow}}
+
+User: "Tell me about deliberate practice"
+Output: {{"subject": "deliberate practice"}}
 """),
     ("human", "{input}")
 ])
@@ -177,38 +255,80 @@ Output: {{"source": "gmail", "date_after": "2026-06-10", "date_before": "2026-06
 def extract_filters(question: str) -> Dict:
     chain = filter_extraction_prompt | llm
     response = chain.invoke({"input": question})
+    raw = response.content.strip()
     
+    print(f"Raw filter response: {raw[:400]}...")
+
+    import json, re
+    
+    # Try to find JSON object
+    json_match = re.search(r'(\{.*?\})', raw, re.DOTALL)
+    json_str = json_match.group(1) if json_match else raw
+
     try:
-        import json
-        filters = json.loads(response.content)
-        print(f"Extracted filters: {filters}")   # Debug
-        return filters
+        filters = json.loads(json_str)
+        if isinstance(filters, dict):
+            print(f"✅ Extracted filters: {filters}")
+            return filters
     except:
-        print("Failed to parse filters, using no filter")
-        return {}
+        pass
+
+    print("❌ Could not parse, returning empty dict")
+    return {}
     
     
     
-def ask(question:str, session_id:str = "default", **filter_kwargs):
+def ask(question: str, session_id: str = "default", **filter_kwargs):
     print(f"Question: {question}")
+
     extracted_filters = extract_filters(question)
-    print(f"Extraced filters: {extracted_filters}")
+    print(f"Extracted filters: {extracted_filters}")
     
-    final_filters = {**extracted_filters, **filter_kwargs}
-    
-    chain = get_rag_chain(**final_filters)
-    response = chain.invoke({'input': question}, config={'configurable':{'session_id':session_id}})
-    
-    context = [
-        doc.page_content
-        for doc in response.get('context',[])
-    ]
-    return {
-        'answer': response['answer'],
-        'sources': [doc.metadata for doc in response.get('context', [])],
-        'context':context
+    explicit_filters = {
+        k: v
+        for k, v in filter_kwargs.items()
+        if v is not None and str(v).strip() not in ["", "none", "null"]
     }
+
+    # Merge LLM-extracted filters with any manually passed filters.
+    # Manual filter_kwargs take precedence (override LLM-extracted ones).
+    final_filters = {**extracted_filters, **explicit_filters}
+
     
+
+    print(f"Final filters being used: {final_filters}")
+
+    # Pass as a single dict argument, NOT as **kwargs, to avoid double-unpacking bugs
+    chain = get_rag_chain(final_filters)
+    response = chain.invoke(
+        {"input": question},
+        config={"configurable": {"session_id": session_id}}
+    )
+
+    try:
+        token_usage = {
+            "input_tokens": response.usage.prompt_tokens,
+            "output_tokens": response.usage.completion_tokens,
+            "total_tokens": response.usage.total_tokens,
+        }
+    except AttributeError:
+        token_usage = {
+            "input_tokens": response.get("usage", {}).get("prompt_tokens", 0),
+            "output_tokens": response.get("usage", {}).get("completion_tokens", 0),
+            "total_tokens": response.get("usage", {}).get("total_tokens", 0),
+        }
+
+    context = [doc.page_content for doc in response.get("context", [])]
+    print(f"Token Usage: {token_usage}")
+
+    return {
+        "answer": response["answer"],
+        "sources": [doc.metadata for doc in response.get("context", [])],
+        "context": context,
+        "token_usage": token_usage,
+    }    
+    
+        
     
 # For testing 
 if __name__ == "__main__":
