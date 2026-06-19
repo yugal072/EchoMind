@@ -7,6 +7,7 @@ import json, re
 
 from app.core.config import VECTORSTORE_DIR, DUMPS_DIR
 from app.RAG.metadatas.filters import build_metadata_filter
+from app.sessions.session_store import PersistentSessionStore, PersistentChatMessageHistory
 
 BASE = Path(__file__).resolve().parents[2]
 STORE_PATH = str(VECTORSTORE_DIR)
@@ -90,11 +91,21 @@ def get_retriever(vectorstore,
 
 
 
-store={}
-def get_session_history(session_id: str) -> BaseChatMessageHistory:
-    if session_id not in store:
-        store[session_id] = ChatMessageHistory()
-    return store[session_id]
+def get_session_history(session_id:str):
+    return PersistentChatMessageHistory(session_id=session_id)
+
+"""
+session_store = PersistentSessionStore()
+def get_session_history(session_id: str):
+    history = ChatMessageHistory()
+    
+    # Load message from persistent store
+    loaded_messages = session_store.get_session_history(session_id)
+    
+    # Add loaded messages to history object
+    history.messages.extend(loaded_messages) 
+    return history
+"""
 
 
 # Contextual Promppt to reframe the context based on the previous and present questions and responses
@@ -155,6 +166,7 @@ def get_rag_chain(filter_dict: Optional[Dict] = None):
     DATE_FILTER_KEYS  = {"date_after", "date_before"}
 
     subject_hint = None   # goes to query augmentation, never to Chroma filter
+    date_hint = None
     clean_kwargs  = {}    # only exact/range fields go here
 
     if filter_dict:
@@ -169,12 +181,10 @@ def get_rag_chain(filter_dict: Optional[Dict] = None):
 
             if k == "subject":
                 subject_hint = cleaned          # ← extracted, NOT filtered
+            elif k in ("date_after","date_before"):
+                date_hint = cleaned
             elif k in EXACT_FILTER_KEYS:
                 clean_kwargs[k] = cleaned
-            elif k in DATE_FILTER_KEYS:
-                resolved = _resolve_date(cleaned)
-                if resolved:
-                    clean_kwargs[k] = resolved
             # Any unrecognised key is silently dropped
 
     print(f"DEBUG - Chroma filter kwargs : {clean_kwargs}")
