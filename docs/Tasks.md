@@ -47,6 +47,7 @@ Improve README + add demo screenshots/video
 # ================================================================================================================================================
 # ================================================================================================================================================
 
+https://grok.com/share/c2hhcmQtNQ_a36755cb-92b0-4010-be97-a9415f498c89
 
 # Phase 1: Core Stability & Usable MVP (Current Phase – Target: 7–10 days)
 Goal: Make the current system reliable, deduplicated, persistent, and user-friendly.
