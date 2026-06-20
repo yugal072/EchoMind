@@ -127,7 +127,7 @@ final_prompt = ChatPromptTemplate.from_messages([
     
 FUZZY_DATE_VALUES = {"recent", "latest", "today", "now", "last week", "this week"}
 
-def _resolve_date(value: str) -> Optional[str]:
+def _resolve_date(value: str) -> Optional[str]:                                             # Currently on hold
     """Convert fuzzy date strings to ISO format, drop unresolvable ones."""
     from datetime import datetime, timedelta
     v = value.lower().strip()
