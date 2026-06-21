@@ -105,12 +105,13 @@ EchoMind/
 │   │   ├── core/              # Configuration and settings
 │   │   ├── ingestion/         # Connectors and data pipelines
 │   │   ├── RAG/               # Indexing, retrieval, and filtering
+|   |   ├── sessions/          # Session persistent
 │   │   ├── eval/              # Evaluation harness (RAGAS)
 │   │   └── main.py            # FastAPI application entrypoint
 │   └── data/                  # Vectorstore and parsed files
 ├── frontend/                  # Streamlit UI
 ├── docs/                      # Documentation
-├── .env.example
+├── .env
 ├── requirements.txt
 └── README.md
 ```
@@ -192,13 +193,13 @@ The system includes a built-in evaluation harness to measure performance:
 
 ## 📸 Screenshots
 
-*(Add screenshots of your application here)*
+
 
 ---
 
 ## 📄 License
 
-*(Add your license information here)*
+The Project is Licensed under MIT license.
 
 ---
 
