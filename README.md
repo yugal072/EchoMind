@@ -1,129 +1,226 @@
 # EchoMind
-> A completely private agentic personal knowledge operating system. It automatically reads and organizes your emails, reads notes, pdfs and stores them in local vectorstore. The user inputs its query and the RAG pipeline replies with the most appropriate and accurate data based on the query and retrieved context. 
 
-The Workflow is divided into:
-1. Data Ingestion.
-- The data is currently ingested into three formats- emails, pdfs, texts.
-- The emails are fetched from the the the email api. The tokens and other credentials are extracted from "credentials.json" file. The emails are then further parsed from html format to pure text format. 
-- The pdf and text files are read with the help of readers like 'PyMuPDFReader' and then pdfs are parsed of their metadata.
-- The parsed content from emails, pdfs along with the data extracted from .txt files are then loaded with formated metadata.
-- On next step each file is then given a unique id/name with the help of its type, filename and a unique hash code created with the help of hashlib. The file id is then in the format "file_{filename}_{content_hash}"
-- At last the files are stored in the form of table with a file_id representing the particular file to prevent the duplication of the files in the vectorstore.
+> **A completely private agentic personal knowledge operating system.**  
+> EchoMind automatically reads and organizes your emails, notes, and PDFs, storing them in a local vectorstore. Users can query their knowledge base, and the RAG pipeline responds with the most accurate and contextually relevant information.
 
 
-2. Uploading files
-- This feature allows user to diercly upload files from the streamilt UI and store it into the vectorstore
-- In @app.post("/upload") upload_loder manages the uploading and parsing of the uploaded documents just the way which happens in the ingestion method.
-- Then the vector_ingestion handles the hash id generations and assigning them to the uploaded file and then finally upload the file into the vectorstore.
+![Status](https://img.shields.io/badge/Status-MVP%20In%20Progress-blue)
+![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.38-orange)
 
-3. RAG Pipeline
-- The RAG/index.py contains the code for entire RAG pipeline from getting vectorstore to invoking the the RAG chain to the user query.
-- Functions listed inside the file goes by the list:
-    - get_vectorstore()
-    - get_retriever()
-    - get_session_history()
-    - get_rag_chain()
-    - extract_filters()
-    - ask() 
-- All the documents and emails are saved into the chromadb till MVP. Will be later shifted to Qdrant and GraphDB for advanced data management and retrieving.
-- The embedding model used is NvidiaEmbeddings which provide fast and robust cloud based embedding model.
-- The llm model used in the chain is Groq's "meta-llama/llama-4-scout-17b-16e-instruct" which complies with the quick and efficient response retrieving model necessity guided by the system prompt given to the chain.
+---
 
-4. Evaluation Harness
-- For evaluation a test dataset was created consisting a list of dicitonaries of questions and answers written based on the system prompt format.
-- The runner.py file then extracts the questions from the dataset and queries it into the RAG pipeline and records the output.
-- A new result json file is created consisting of output along with the context.
-- Finally ragas_metrics.py file:
-    - Creates a evaluator llm with seperating evaluator embeddings to evaluate the original vs required response to each question.
-    - The llm is wrapped with the help of LangchainLLMWrapper.
-    - The 'eavaluate()' function is run on the dataset for metrics - Faithfulness, Answer Relevancy, Context Precision, Context Recall.
-    - Atlast save_report() returns a .json file consisting of the scores for each metrics. 
+## 📖 Table of Contents
 
-5. Metadata Filtering
-- The metadata filtering is complying with Langchain retrieval metadata filtering.
-- The metadatas are divided into categories- source, sender, subject, date_after, date_before, document_type.
-- Due to Chroma limitations some string(subject) and datetime filters are kept on hold to implement them later with Qdrant and GraphDB integration.  
-- Another method for filter extraction was implemented for the ease of useer.
-- A filter extraction prompt was fed to a supplementary chain which extracts the filters directly from the user input question.
-- Then in ask() function these manual and extracted filters are then combined and fed to the RAG invoke function. 
+- [Overview](#overview)
+- [Features](#features)
+- [Workflow](#workflow)
+- [Project Structure](#project-structure)
+- [Quick Start](#quick-start)
+- [Technologies Used](#technologies-used)
+- [Evaluation](#evaluation)
+- [Screenshots](#screenshots)
+- [License](#license)
 
-6. Session Persistency
-- Intially only temporary chat history was added from langchain's MessageHistory which was not able to save and maintain the history of previous sessions.
-- Therefore a new manual session history functionality was created for managing and storing session history into ./storage folder.
-- The session_store.py function declares the Basemodel class structure for ChatMessage and SessionData. It also creates the class PersistenceSessionStore which contains functions to get_session_history() and store_session_history.
-- A new class 'PersistentChatMessageHistory(ChatMessageHistory)' was created which inherits the ChatMessageHistory from langchain, to automate the process of getting and storing the session data.
-- It inherits the get and store functions from parent class 'PersistenceSessionStore' and calls it.
-- It then modifies the add_message() which is the inbuilt ChatMessageHistory function to take input and store according to the store_session_history() inside the parent class.
-- After that inside get_session_history() function the class 'PersistentChatMessageHistory(ChatMessageHistory)' is called.
-- The function get_message_history() is then fed to the RunnableWithMessageHistory() inside get_rag_chain() as a parameter under the same name.
+---
 
+## Overview
 
+EchoMind is a privacy-first, local-first personal knowledge management system that ingests data from multiple sources—emails, PDFs, and text files—and enables intelligent, conversational retrieval through a RAG (Retrieval-Augmented Generation) pipeline. Designed with modularity and extensibility in mind, it allows users to upload documents, filter by metadata, and maintain session history across conversations.
 
 ---
 
 ## ✨ Features
 
-- Multi-source ingestion (Gmail, PDFs, Text files)
-- Intelligent parsing with LlamaParse
-- Hybrid RAG with metadata filtering (source, date, sender, subject, etc.)
-- Multi-turn conversational memory
-- FastAPI backend + Streamlit UI
-- Built-in Evaluation Harness (RAGAS)
-- Local-first & Privacy-focused
+- **Multi-source ingestion** – Gmail, PDFs, and `.txt` files  
+- **Intelligent parsing** – Uses LlamaParse for PDF processing  
+- **Hybrid RAG pipeline** – Combines semantic search with metadata filtering (source, date, sender, subject, etc.)  
+- **Multi-turn conversational memory** – Persistent chat history across sessions  
+- **Metadata filtering** – Filter queries by document type, sender, date, and more  
+- **FastAPI backend** – RESTful API for scalable integration  
+- **Streamlit UI** – Simple and interactive frontend for prototyping  
+- **Built-in Evaluation Harness** – RAGAS-based metrics for system performance assessment  
+- **Local-first & Privacy-focused** – All data stays on your machine
+
+---
+
+## Workflow
+
+### 1. Data Ingestion
+
+- **Sources**: Emails (Gmail API), PDFs, and text files  
+- **Processing**:
+  - Emails are fetched using credentials from `credentials.json` and converted from HTML to plain text  
+  - PDFs are parsed using `PyMuPDFReader`; metadata is extracted  
+  - Text files are read directly  
+- **Deduplication**: Each file is assigned a unique ID (`file_{filename}_{content_hash}`) using `hashlib` to prevent duplicates in the vectorstore  
+- **Storage**: Files are stored in a structured table with metadata for future retrieval
+
+### 2. File Upload
+
+- Users can upload documents directly via the Streamlit UI  
+- The `/upload` endpoint handles parsing, hash generation, and vectorstore insertion  
+- Uploaded files follow the same ingestion pipeline to ensure consistency
+
+### 3. RAG Pipeline
+
+Located in `RAG/index.py`, the pipeline includes:
+
+- **Vectorstore**: ChromaDB (MVP) – planned migration to Qdrant and GraphDB  
+- **Embeddings**: NvidiaEmbeddings for fast, cloud-based vectorization  
+- **LLM**: Groq's `meta-llama/llama-4-scout-17b-16e-instruct` for efficient response generation  
+- **Retrieval**: Supports metadata-based filtering (source, sender, subject, date range, etc.)  
+- **Filter extraction**: A supplementary chain extracts filters directly from user queries
+
+### 4. Metadata Filtering
+
+- Metadata fields: `source`, `sender`, `subject`, `date_after`, `date_before`, `document_type`  
+- String and datetime filters are currently limited due to ChromaDB constraints, but will be expanded with future Qdrant/GraphDB integration  
+- A custom `extract_filters()` function combines manual and LLM-extracted filters before query execution
+
+### 5. Session Persistency
+
+- **Temporary chat history** initially used Langchain's `MessageHistory`  
+- **Persistent session management** was implemented using:
+  - `PersistenceSessionStore` – handles saving/loading session data to/from `./storage`  
+  - `PersistentChatMessageHistory` – extends `ChatMessageHistory` to automate persistent storage  
+- Sessions are integrated into the RAG chain via `RunnableWithMessageHistory()`
+
+### 6. Frontend
+
+- Built with **Streamlit** for rapid prototyping  
+- Communicates with the FastAPI backend on port `8000`  
+- Frontend and backend run separately
 
 ---
 
 ## Project Structure
+
+```
 EchoMind/
 ├── backend/
 │   ├── app/
-│   │   ├── core/              # config, settings
-│   │   ├── ingestion/         # connectors & pipeline
-│   │   ├── RAG/               # index, retriever, filters
-│   │   ├── eval/              # evaluation harness
-│   │   └── main.py            # FastAPI endpoints
-│   └── data/                  # vectorstore, parsed files
+│   │   ├── core/              # Configuration and settings
+│   │   ├── ingestion/         # Connectors and data pipelines
+│   │   ├── RAG/               # Indexing, retrieval, and filtering
+│   │   ├── eval/              # Evaluation harness (RAGAS)
+│   │   └── main.py            # FastAPI application entrypoint
+│   └── data/                  # Vectorstore and parsed files
 ├── frontend/                  # Streamlit UI
-├── docs/                      # documentation
+├── docs/                      # Documentation
 ├── .env.example
 ├── requirements.txt
 └── README.md
+```
 
+---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Python 3.11+
-- Nvidia API Key
-- Groq API Key
-- LlamaParse API Key (for PDFs)
+- [Nvidia API Key](https://build.nvidia.com/)
+- [Groq API Key](https://console.groq.com/)
+- [LlamaParse API Key](https://cloud.llamaindex.ai/)
 
 ### Installation
 
 ```bash
-# 1. Clone the repository
-git clone <https://github.com/yugal072/EchoMind.git>
+# Clone the repository
+git clone https://github.com/yugal072/EchoMind.git
 cd EchoMind
 
-# 2. Create and activate environment
+# Create and activate Conda environment
 conda create -n echomind python=3.11
 conda activate echomind
 
-# 3. Install dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-#  4. Configure environment variables
+# Configure environment variables
 cp .env.example .env
 # Edit .env with your API keys
 ```
 
-# Running the APplication
-```bash
-# Terminal 1
-cd backend/
-uvicorn app.main:app --reload 
+### Running the Application
 
-# Terminal 2
+```bash
+# Terminal 1: Backend
+cd backend/
+uvicorn app.main:app --reload
+
+# Terminal 2: Frontend
 cd frontend/
 streamlit run streamlit_app.py
+```
+
+The application will be available at `http://localhost:8501` (frontend) and `http://localhost:8000` (backend API).
+
+---
+
+## Technologies Used
+
+- **Language**: Python 3.11  
+- **Backend**: FastAPI, Uvicorn  
+- **Frontend**: Streamlit  
+- **Vector Database**: ChromaDB (current), future plans for Qdrant and GraphDB  
+- **Embeddings**: NvidiaEmbeddings  
+- **LLM**: Groq (`meta-llama/llama-4-scout-17b-16e-instruct`)  
+- **Evaluation Framework**: RAGAS  
+- **Document Parsing**: PyMuPDFReader, LlamaParse  
+- **Email Integration**: Gmail API  
+
+---
+
+## Evaluation
+
+The system includes a built-in evaluation harness to measure performance:
+
+- **Dataset**: Custom dataset of Q&A pairs based on ingested content  
+- **Runner**: `runner.py` executes queries and records outputs  
+- **Metrics** (via `ragas_metrics.py`):
+  - **Faithfulness** – Is the response grounded in the retrieved context?  
+  - **Answer Relevancy** – Is the response relevant to the query?  
+  - **Context Precision** – How precise is the retrieved context?  
+  - **Context Recall** – Does the retrieved context cover all necessary information?  
+- **Reporting**: Results are saved as a JSON file with per-metric scores
+
+---
+
+## 📸 Screenshots
+
+*(Add screenshots of your application here)*
+
+---
+
+## 📄 License
+
+*(Add your license information here)*
+
+---
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!  
+Feel free to check the [issues page](https://github.com/yugal072/EchoMind/issues) for open tasks.
+
+---
+
+## 📬 Contact
+
+- **Author**: Yugal  
+- **GitHub**: [yugal072](https://github.com/yugal072)  
+- **Project Link**: [https://github.com/yugal072/EchoMind](https://github.com/yugal072/EchoMind)
+
+---
+
+## 🙏 Acknowledgments
+
+- [LangChain](https://www.langchain.com/)  
+- [FastAPI](https://fastapi.tiangolo.com/)  
+- [Streamlit](https://streamlit.io/)  
+- [Groq](https://groq.com/)  
+- [Nvidia](https://build.nvidia.com/)  
+- [LlamaIndex](https://www.llamaindex.ai/)
