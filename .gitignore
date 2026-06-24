@@ -2,6 +2,7 @@
 cat > .gitignore << 'EOF'
 # Secrets and credentials (CRITICAL)
 *.json
+*.mp3
 *credentials.json
 *token.json
 *.key
