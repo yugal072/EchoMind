@@ -71,7 +71,7 @@ def get_vectorstore():
         embedding_function=embeddings
     )
     
-def get_retriever(vectorstore, 
+def get_retriever(vectorstore = get_vectorstore(), 
                   k:int =6,
                   score_threshold: float=0.05,
                   metadata_filter: Optional[Dict]= None):
