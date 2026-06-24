@@ -23,6 +23,14 @@ def ingest():
     response = requests.post(f"{BASE_URL}/ingest")
     return response.json()
 
+def ingest_audio(file_path: str):
+    response = requests.post(
+        f"{BASE_URL}/ingest/audio",
+        json={"file_path": file_path}
+    )
+    return response
+
+
 def chat(question, session_id):
     response = requests.post(f"{BASE_URL}/chat",
                              json = {"question": question, "session_id": session_id
