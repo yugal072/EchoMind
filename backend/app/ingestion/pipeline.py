@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List, Dict, Optional
 from langchain_core.documents import Document
 from bs4 import BeautifulSoup
 import hashlib
@@ -6,6 +7,8 @@ from datetime import datetime
 
 from app.ingestion.parsers.email_parser import parse_emails, clean_html
 from app.ingestion.parsers.llama_parser import parse_pdfs
+from app.ingestion.connectors.audio import load_audio_file
+from app.ingestion.connectors.sms import get_sms_to_documents
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from app.core.config import VECTORSTORE_DIR, DUMPS_DIR
@@ -35,13 +38,60 @@ def load_email_documents(max_results=20)->list[Document]:
 
 def get_email_ids(chunks):
     ids = []
-    for i, chunk in enumerate(chunks):
-        email_id = chunk.metadata.get("id", f"unknown_{i}")
-        content_hash = hashlib.md5(chunk.page_content.encode('utf-8')).hexdigest()[:12]
-        doc_id = f"email_{email_id}_{content_hash}"
+    for chunk in chunks:
+        email_id = chunk.metadata.get("id")
+        if email_id:
+            # Best: Use original Gmail ID + short hash of content
+            content_hash = hashlib.md5(chunk.page_content[:500].encode('utf-8')).hexdigest()[:8]
+            doc_id = f"email_{email_id}_{content_hash}"
+        else:
+            # Fallback
+            doc_id = f"email_unknown_{hashlib.md5(chunk.page_content[:200].encode('utf-8')).hexdigest()[:12]}"
+        
         ids.append(doc_id)
     return ids
 
+def load_sms_documents(sms_data:List[Dict]):
+    documents = get_sms_to_documents(sms_data)
+    return documents
+
+
+
+def load_audio_documents(
+    audio_dir: Optional[str] = None,
+    uploaded_file_path: Optional[str] = None,
+    audio_files: Optional[List[str]] = None
+    
+) -> List[Document]:
+    
+    documents = []
+    
+    # Priority: UI Upload > List of files > Directory
+    if uploaded_file_path:
+        try:
+            docs = load_audio_file(uploaded_file_path)
+            documents.extend(docs)
+            print(f"✅ Transcribed uploaded file: {Path(uploaded_file_path).name}")
+        except Exception as e:
+            print(f"❌ Failed uploaded file {uploaded_file_path}: {e}")
+            
+    elif audio_files:
+        for path in audio_files:
+            try:
+                docs = load_audio_file(path)
+                documents.extend(docs)
+            except Exception as e:
+                print(f"❌ Failed {path}: {e}")
+                
+    elif audio_dir:
+        # Your existing folder logic here...
+        pass
+    
+    return documents
+
+def generate_audio_ids(chunks):
+    return [f"audio_{chunk.metadata['filename']}_{i}" for i, chunk in enumerate(chunks)]
+    
 def load_file_documents()->list[Document]:
     docs=[]
     for path in DUMPS_DIR.glob("*.txt"):
