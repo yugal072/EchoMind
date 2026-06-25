@@ -115,6 +115,7 @@ Success Criteria:
 
 User can upload WhatsApp exports and audio files from UI
 All sources feed into the same unified knowledge base
+[0] User can view the sources highled inside the actual document if necessary and can access them in a click(sidebar)
 
 
 # Phase 4: Agentic Capabilities (2–3 weeks)
