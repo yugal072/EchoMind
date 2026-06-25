@@ -118,19 +118,25 @@ def load_file_documents()->list[Document]:
 
 def load_pdf_documents() -> list[Document]:
     docs = []
-    for e in parse_pdfs():
+    parsed_data= parse_pdfs()
+    for item in parsed_data:
         try:
-            text = e.get("text","")
-            llama_meta = e.get("metadata", {}) if isinstance(e.get("metadata"), dict) else {}
+            text = item.get("text","").strip()
+            if not text:
+                continue  # skip empty doc
             
-            flat_meta = {"source": "pdf",
-                         "document_type":"pdf",
-                         "filename":llama_meta.get("file_name") or llama_meta.get("name") or "unknown.pdf",
-                         "ingested_at":datetime.now().isoformat(),
-                         "page_count":llama_meta.get("total_pages", 1),
-                         "file_size":len(text)
-                         }
+            llama_meta = item.get("metadata", {}) if isinstance(e.get("metadata"), dict) else {}
+            
+            flat_meta = {
+                        "source": "pdf",
+                        "document_type":"pdf",
+                        "filename":llama_meta.get("file_name") or llama_meta.get("name") or "unknown.pdf",
+                        "ingested_at":datetime.now().isoformat(),
+                        "page_count":llama_meta.get("total_pages", 1),
+                        "file_size":len(text)
+                        }
            
+            # add other useful metadata if available
             for key in ["title", "author", "creation_date", "mod_date", "page_number"]:
                 if key in llama_meta and llama_meta[key]:
                     flat_meta[key] = llama_meta[key]
@@ -145,6 +151,8 @@ def load_pdf_documents() -> list[Document]:
             print(f"Error processing PDF document: {e}")
             continue
             
+    print(f"✅ Loaded {len(docs)} PDF documents into LangChain format")
+
     return docs
 
 def get_pdf_ids(chunks):

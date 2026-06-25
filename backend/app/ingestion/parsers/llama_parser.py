@@ -38,7 +38,8 @@ def parse_pdfs():
 
     pdf_paths = [str(p) for p in DUMPS_DIR.glob("*.pdf")]
     if not pdf_paths:
-        sys.exit(f"No PDF files found in {DUMPS_DIR}. Add PDFs and re-run.")
+        print(f"No PDF files found in {DUMPS_DIR}. Add PDFs and re-run.")
+        return []
 
     print(f"Parsing {len(pdf_paths)} file(s)...")
     documents = parser.load_data(pdf_paths)

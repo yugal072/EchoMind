@@ -9,8 +9,8 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
-from app.core.config import EMAIL_DIR
-from app.ingestion.parsers.email_parser import load_ingested_ids, save_ingested_ids
+from app.core.config import EMAIL_DIR, BASE_DIR
+from app.ingestion.loaders.email_tracker import save_ingested_ids, load_ingested_ids
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 CONNECTOR_DIR = Path(__file__).resolve().parent
@@ -97,6 +97,7 @@ def list_recent_emails(max_results=20):
             "from": _get_header(headers, "From"),
             "date": _get_header(headers, "Date"),
             "snippet": msg_data.get("snippet", ""),
+            "raw_data": msg_data,
             "body": _get_body(msg_data["payload"]),
         }
         
@@ -118,15 +119,15 @@ def save_raw_emails(email:dict):
     try:
         email_date = email.get('date','')
         if email_date:
-            date_obj = datetime.strptime(email_date[:10], "%a, %d %b %Y %H:%M:%S")
-            folder_name = date_obj.strftime("%Y-%m-%d")
+            date_str = email_date.split(',')[1].strip()[:11]  # rough parse
+            folder_name = datetime.strptime(date_str, "%d %b %Y").strftime("%Y-%m-%d")
         else:
             folder_name = "unknown date"
         
     except:
         folder_name = "unknown date"
         
-    raw_dir = EMAIL_DIR/ folder_name
+    raw_dir = BASE_DIR/ "data" / "uploads" / "emails"
     raw_dir.mkdir(parents=True, exist_ok=True)
     
     file_path = raw_dir/ f"{email['id']}.json"

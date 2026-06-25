@@ -17,10 +17,11 @@ def build_index():
     """ Run this only when new data is added"""
     print("Starting Ingestion")
     try:
+        '''
         sms_documents = load_sms_documents()
         sms_chunks = split_documents(sms_documents)
         sms_ids = [f"sms_{doc.metadata.get('message_id', i)}_{i}" for i, doc in enumerate(sms_chunks)]
-        
+        '''
         pdf_documents = load_pdf_documents()
         pdf_chunks = split_documents(pdf_documents)
         pdf_ids = get_pdf_ids(chunks=pdf_chunks)
@@ -42,8 +43,8 @@ def build_index():
             vectorstore.add_documents(documents=email_chunks, ids= email_ids)
         if file_chunks:
             vectorstore.add_documents(documents=file_chunks, ids = file_ids)
-        if sms_chunks:
-            vectorstore.add_documents(documents=sms_chunks, ids= sms_ids)
+        '''if sms_chunks:
+            vectorstore.add_documents(documents=sms_chunks, ids= sms_ids)'''
         
         total= len(pdf_chunks)+ len(email_chunks) + len(file_chunks)
         total_chunks = vectorstore._collection.count()

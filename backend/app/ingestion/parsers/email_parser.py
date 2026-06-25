@@ -6,23 +6,14 @@ from pathlib import Path
 
 from app.core.config import BASE_DIR, DATA_DIR
 from app.ingestion.connectors.gmails import list_recent_emails
-
+from app.ingestion.loaders.email_tracker import save_ingested_ids, load_ingested_ids
 
 OUT = BASE_DIR / "data" / "parsed" / "emails"
 OUT.mkdir(parents=True, exist_ok=True)
 
 INGESTED_TRACKER = OUT/"ingested_email_ids.json"
 
-def load_ingested_ids():
-    if INGESTED_TRACKER.exists():
-        try:
-            return set(json.loads(INGESTED_TRACKER.read_text(encoding="utf-8")))
-        except:
-            return set()
-    return set()
 
-def save_ingested_ids(ids_set:set):
-    INGESTED_TRACKER.write_text(json.dumps(list(ids_set),indent=2), encoding= "utf-8")
 
 def clean_html(html_content:str):
     if not html_content:
