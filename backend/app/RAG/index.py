@@ -5,7 +5,7 @@ from typing import Optional, Dict
 load_dotenv()
 import json, re
 
-from app.core.config import VECTORSTORE_DIR, DUMPS_DIR
+from app.core.config import VECTORSTORE_DIR
 from app.RAG.metadatas.filters import build_metadata_filter
 from app.sessions.session_store import PersistentSessionStore, PersistentChatMessageHistory
 
@@ -36,9 +36,11 @@ system_prompt = (
     You are EchoMind, a precise and trustworthy personal knowledge assistant.
     **Core Rules:**
     - Answer **only** using information present in the provided context.
+    - Extract **exact** details like URLs, dates, names, deadlines when the user asks for them.
     - Be **direct, concise, and accurate**. Avoid unnecessary explanations.
-    - If the context does not contain enough information, reply exactly: "I don't have enough information in my knowledge base to answer this."
+    - If the context does not contain the answer, reply exactly: "I don't have enough information in my knowledge base to answer this."
     - Do NOT hallucinate names, dates, emails, or any facts.
+    - Do NOT add extra explanations, suggestions, or commentary unless specifically asked
     - Do NOT say "Based on the context" or "According to the documents" in the final answer.
 
     **Advanced Capability - Smart Filtering:**
@@ -52,8 +54,8 @@ system_prompt = (
     - "PDFs about project X" → focus on source=pdf and subject/filename containing "project X"
 
     **Response Style:**
-    - Be helpful and natural.
-    - If multiple relevant documents exist, summarize the key points clearly.
+    - Be natural and professional.
+    - Prioritize the most relevant information.
     - Use bullet points only when it improves readability.
     - Stay strictly relevant to what the user asked.
         
@@ -93,20 +95,6 @@ def get_retriever(vectorstore = get_vectorstore(),
 
 def get_session_history(session_id:str):
     return PersistentChatMessageHistory(session_id=session_id)
-
-"""
-session_store = PersistentSessionStore()
-def get_session_history(session_id: str):
-    history = ChatMessageHistory()
-    
-    # Load message from persistent store
-    loaded_messages = session_store.get_session_history(session_id)
-    
-    # Add loaded messages to history object
-    history.messages.extend(loaded_messages) 
-    return history
-"""
-
 
 # Contextual Promppt to reframe the context based on the previous and present questions and responses
 
@@ -234,7 +222,7 @@ def get_rag_chain(filter_dict: Optional[Dict] = None):
 
 
 filter_extraction_prompt = ChatPromptTemplate.from_messages([
-    ("system", """You are a FILTER EXTRACTION BOT. 
+    ("system", """You are a SMART FILTER EXTRACTION BOT. 
 
 YOUR ONLY JOB IS TO RETURN A VALID JSON OBJECT. NOTHING ELSE. NO EXPLANATIONS.
 
@@ -246,7 +234,7 @@ Rules:
 
 Examples:
 
-User: "What placement related emails did I receive?"
+User: "emails from placement?"
 Output: {{"source": "gmail", "subject": "placement"}}
 
 User: "Show me emails from placement cell"
@@ -256,7 +244,7 @@ User: "Who is the author of Thinking Fast and Slow?"
 Output: {{"source": "pdf", "subject": "Thinking Fast and Slow}}
 
 User: "Tell me about deliberate practice"
-Output: {{"subject": "deliberate practice"}}
+Output: {{"source":"upload","subject": "deliberate practice"}}
 """),
     ("human", "{input}")
 ])
