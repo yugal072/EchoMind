@@ -1,21 +1,19 @@
 # Moving from fastapi to cloud deployment, this client will be used to interact with the backend API.  loaclhost:8000 ----> aws
 
 import requests
+from pathlib import Path
 BASE_URL = "http://localhost:8000"  # Change this to your AWS endpoint when deployed
 
-def upload(uploaded_files):
-    files_payload = [
-        (
-            "files",
-            (
-                file.name,
-                file.getvalue(),
-                file.type
-            )
-        )
-        for file in uploaded_files
-    ]
+def upload(file_paths):
+    files_payload = []
     
+    for path in file_paths:
+        if isinstance(path, str):
+            path= Path(path)
+        with open(path, 'rb') as f:
+            files_payload.append(
+                ("files",(path.name, f.read(), "application/octet-stream"))
+            )
     response = requests.post(f"{BASE_URL}/upload", files=files_payload)
     return response.json()
 
