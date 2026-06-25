@@ -1,11 +1,16 @@
 import base64
 import os.path
+from datetime import datetime
+import json
 from pathlib import Path
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+
+from app.core.config import EMAIL_DIR
+from app.ingestion.parsers.email_parser import load_ingested_ids, save_ingested_ids
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 CONNECTOR_DIR = Path(__file__).resolve().parent
@@ -64,18 +69,28 @@ def get_gmail_service():
     return build("gmail", "v1", credentials=creds)
 
 
-def list_recent_emails(max_results=10):
+def list_recent_emails(max_results=20):
+    """ Fetch recent emails but skip the existing ones"""
     service = get_gmail_service()
+    
+    ingested_ids = load_ingested_ids()
     results = service.users().messages().list(userId="me", maxResults=max_results).execute()
     messages = results.get("messages", [])
 
     emails = []
+    new_ids = set()
     for msg in messages:
+        email_id = msg['id']
+        
+        if email_id in ingested_ids:
+            continue
+        
         msg_data = service.users().messages().get(
-            userId="me", id=msg["id"], format="full"
+            userId="me", id=email_id, format="full"
         ).execute()
+        
         headers = msg_data["payload"]["headers"]
-        emails.append({
+        email = {
             "source": "gmail",
             "id": msg["id"],
             "subject": _get_header(headers, "Subject") or "No Subject",
@@ -83,9 +98,42 @@ def list_recent_emails(max_results=10):
             "date": _get_header(headers, "Date"),
             "snippet": msg_data.get("snippet", ""),
             "body": _get_body(msg_data["payload"]),
-        })
+        }
+        
+        save_raw_emails(email)
+        emails.append(email)
+        new_ids.add(email_id)
+        
+    if new_ids:
+        ingested_ids.update(new_ids)
+        save_ingested_ids(ingested_ids)
+    
+    print(f"Fetched {len(emails)} new emails (skipped {len(messages) - len(emails)} already ingested)")
     return emails
+    
 
+def save_raw_emails(email:dict):
+    """save raw email as json"""
+    # create date based data folder if it doesnt exist
+    try:
+        email_date = email.get('date','')
+        if email_date:
+            date_obj = datetime.strptime(email_date[:10], "%a, %d %b %Y %H:%M:%S")
+            folder_name = date_obj.strftime("%Y-%m-%d")
+        else:
+            folder_name = "unknown date"
+        
+    except:
+        folder_name = "unknown date"
+        
+    raw_dir = EMAIL_DIR/ folder_name
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    
+    file_path = raw_dir/ f"{email['id']}.json"
+    
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(email, f, indent=2, ensure_ascii=False)
+    
 
 if __name__ == "__main__":
     emails = list_recent_emails(1)
