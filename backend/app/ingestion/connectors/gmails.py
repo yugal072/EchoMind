@@ -14,7 +14,7 @@ from app.ingestion.loaders.email_tracker import save_ingested_ids, load_ingested
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 CONNECTOR_DIR = Path(__file__).resolve().parent
-TOKEN_PATH = CONNECTOR_DIR / "token.json"
+TOKEN_PATH = CONNECTOR_DIR / "gmail_token.json"
 CREDS_PATH = CONNECTOR_DIR / "credentials.json"
 
 
@@ -137,7 +137,10 @@ def save_raw_emails(email:dict):
     
 
 if __name__ == "__main__":
-    emails = list_recent_emails(1)
-    print("SUBJECT:", emails[0]["subject"])
-    print("BODY:")
-    print(emails[0]["body"][:1000])
+    emails = list_recent_emails(5)
+    print(f"Fetched {len(emails)} new emails")
+    if emails:
+        print("SUBJECT:", emails[0]["subject"])
+        print("BODY:", emails[0]["body"][:500])
+    else:
+        print("No new emails to show.")
