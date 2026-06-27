@@ -11,6 +11,8 @@ UPLOAD_DIR = DATA_DIR / "uploads"
 
 FILES_DIR = UPLOAD_DIR / "files"
 
+CALENDAR_DIR = UPLOAD_DIR / "calendar"
+
 EMAIL_DIR = UPLOAD_DIR / "emails"
 
 VECTORSTORE_DIR = DATA_DIR / "vectorstore"
