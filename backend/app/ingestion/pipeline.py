@@ -9,6 +9,10 @@ from app.ingestion.parsers.email_parser import parse_emails, clean_html
 from app.ingestion.parsers.llama_parser import parse_pdfs
 from app.ingestion.connectors.audio import load_audio_file
 from app.ingestion.connectors.sms import get_sms_to_documents
+
+from app.ingestion.connectors.calendar import list_upcomming_events
+from app.ingestion.parsers.calender_parser import parse_events
+
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from app.core.config import VECTORSTORE_DIR, DUMPS_DIR
@@ -36,6 +40,22 @@ def load_email_documents(max_results=20)->list[Document]:
                              ))
     return docs
 
+def load_calendar_documents():
+    """Load calendar events and convert them to langchain Documents"""
+    raw_events = list_upcomming_events(max_result=20)
+    documents = parse_events(raw_events)
+    return documents
+
+def get_calendar_ids(chunks):
+    """Generate unique ids for calendar chunks to prevent duplicates"""
+    ids=[]
+    for i, doc in enumerate(chunks):
+        event_id = doc.metadata.get("event_id",f"unknown_{i}")
+        doc_id= f"calendar_{event_id}_chunk{i}"
+        ids.append(doc_id)
+    return ids
+     
+     
 def get_email_ids(chunks):
     ids = []
     for chunk in chunks:
@@ -188,6 +208,7 @@ def run_ingestion()->list[Document]:
     all_docs.extend(pdf_docs)
     
     return all_docs
+
 
 def split_documents(documents):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size= 500, chunk_overlap=80)
