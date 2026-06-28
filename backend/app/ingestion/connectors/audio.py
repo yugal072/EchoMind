@@ -23,14 +23,16 @@ def load_audio_file(audio_path: str | Path)-> List[Document]:
     
     doc = Document(
         page_content=result['text'],
-        metadata= {
-            "source":"audio",
+        metadata={
+            "source": "audio",
             "filename": result['filename'],
-            "file_path":result['file_path'],
+            "subject": result['filename'],           # shared alias used by subject filter
+            "file_path": result['file_path'],
             "language": result['language'],
             "duration": result['duration'],
             "ingested_at": datetime.now().isoformat(),
-            "type": "voice note"
+            "date_ts": datetime.now().timestamp(),   # ingestion time as Unix float (best available)
+            "type": "voice note",
         }
     )
     
