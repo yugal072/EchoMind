@@ -2,8 +2,10 @@ from pathlib import Path
 from typing import List, Dict, Optional
 from langchain_core.documents import Document
 from bs4 import BeautifulSoup
+import uuid
 import hashlib
 from datetime import datetime
+from email.utils import parsedate_to_datetime
 
 from app.ingestion.parsers.email_parser import parse_emails, clean_html
 from app.ingestion.parsers.llama_parser import parse_pdfs
@@ -14,7 +16,6 @@ from app.ingestion.connectors.calendar import list_upcomming_events
 from app.ingestion.parsers.calender_parser import parse_events
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_chroma import Chroma
 from app.core.config import VECTORSTORE_DIR, DUMPS_DIR
 
 
@@ -26,18 +27,27 @@ def clean_email_body(html_content: str) -> str:
     return text
 
 
-def load_email_documents(max_results=20)->list[Document]: 
+def load_email_documents(max_results=20) -> list[Document]:
     docs = []
     for e in parse_emails(max_results):
         text = f"Subject: {e['subject']}\nFrom:{e['from']}\nDate:{e['date']}\nText:{clean_email_body(e['text'])}"
-        docs.append(Document(page_content= text, metadata={"source":"gmail",
-                                                           "id":e["id"],
-                                                           "subject":e["subject"],
-                                                           "from":e["from"],
-                                                           "date":e["date"],
-                                                           "ingested_at": datetime.now().isoformat(),
-                                                           "document_type":"email"}
-                             ))
+
+        try:
+            date_ts = parsedate_to_datetime(e["date"]).timestamp() if e.get("date") else None
+        except Exception:
+            date_ts = None
+
+        docs.append(Document(page_content=text, metadata={
+            "source": "gmail",
+            "id": e["id"],
+            "subject": e["subject"],
+            "from": e["from"],
+            "sender": e["from"],
+            "date": e["date"],
+            "date_ts": date_ts,
+            "ingested_at": datetime.now().isoformat(),
+            "document_type": "email",
+        }))
     return docs
 
 def load_calendar_documents():
@@ -49,26 +59,28 @@ def load_calendar_documents():
 def get_calendar_ids(chunks):
     """Generate unique ids for calendar chunks to prevent duplicates"""
     ids=[]
-    for i, doc in enumerate(chunks):
-        event_id = doc.metadata.get("event_id",f"unknown_{i}")
-        doc_id= f"calendar_{event_id}_chunk{i}"
-        ids.append(doc_id)
+    for i, chunk in enumerate(chunks):
+        event_id = chunk.metadata.get("event_id",f"unknown_{i}")
+        filename = Path(event_id).name
+        custom_id= f"calendar_{filename}_chunk[i]"
+        uuid_id= generate_uuid_from_string(custom_id)
+        ids.append(uuid_id)
     return ids
      
+
+def generate_uuid_from_string(text:str) ->str:
+    """Generate a consistent UUID from any string"""
+    # Use UUID5 (SHA1-based) with a fixed namespace for consistency
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, text))
      
 def get_email_ids(chunks):
     ids = []
     for chunk in chunks:
         email_id = chunk.metadata.get("id")
-        if email_id:
-            # Best: Use original Gmail ID + short hash of content
-            content_hash = hashlib.md5(chunk.page_content[:500].encode('utf-8')).hexdigest()[:8]
-            doc_id = f"email_{email_id}_{content_hash}"
-        else:
-            # Fallback
-            doc_id = f"email_unknown_{hashlib.md5(chunk.page_content[:200].encode('utf-8')).hexdigest()[:12]}"
+        custom_id = f"email_{email_id}"
+        uuid_id = generate_uuid_from_string(custom_id)
         
-        ids.append(doc_id)
+        ids.append(uuid_id)
     return ids
 
 def load_sms_documents(sms_data:List[Dict]):
@@ -124,9 +136,11 @@ def load_file_documents()->list[Document]:
                     "source": "file",
                     "document_type": "text",
                     "filename": path.name,
+                    "subject": path.stem,                     # stem (no extension) is the human-readable title
                     "path": str(path),
                     "ingested_at": datetime.now().isoformat(),
-                    "file_size": len(content),                    # useful for debugging
+                    "date_ts": path.stat().st_mtime,          # file's last-modified time as a Unix timestamp
+                    "file_size": len(content),
                     "extension": ".txt",
                 }
             )
@@ -145,15 +159,17 @@ def load_pdf_documents() -> list[Document]:
             if not text:
                 continue  # skip empty doc
             
-            llama_meta = item.get("metadata", {}) if isinstance(e.get("metadata"), dict) else {}
+            llama_meta = item.get("metadata", {}) if isinstance(item.get("metadata"), dict) else {}
             
             flat_meta = {
                         "source": "pdf",
-                        "document_type":"pdf",
-                        "filename":llama_meta.get("file_name") or llama_meta.get("name") or "unknown.pdf",
-                        "ingested_at":datetime.now().isoformat(),
-                        "page_count":llama_meta.get("total_pages", 1),
-                        "file_size":len(text)
+                        "document_type": "pdf",
+                        "filename": llama_meta.get("file_name") or llama_meta.get("name") or "unknown.pdf",
+                        "subject": llama_meta.get("title") or llama_meta.get("file_name") or llama_meta.get("name") or "unknown.pdf",
+                        "ingested_at": datetime.now().isoformat(),
+                        "date_ts": datetime.now().timestamp(),  # PDFs rarely have a reliable creation date; use ingestion time
+                        "page_count": llama_meta.get("total_pages", 1),
+                        "file_size": len(text),
                         }
            
             # add other useful metadata if available
@@ -178,21 +194,23 @@ def load_pdf_documents() -> list[Document]:
 def get_pdf_ids(chunks):
     ids = []
     for i, chunk in enumerate(chunks):
-        source = chunk.metadata.get("source", "unknown.pdf")
-        filename = Path(source).name
-        content_hash = hashlib.md5(chunk.page_content.encode('utf-8')).hexdigest()[:12]
-        doc_id = f"pdf_{filename}_{content_hash}"
-        ids.append(doc_id)
+        # Use 'filename' (e.g. "mybook.pdf") not 'source' (the literal string "pdf")
+        filename = chunk.metadata.get("filename", "unknown.pdf")
+        filename = Path(filename).name
+        custom_id = f"pdf_{filename}_chunk{i}"
+        uuid_id = generate_uuid_from_string(custom_id)
+        ids.append(uuid_id)
     return ids
 
 def get_file_ids(chunks):
     ids = []
     for i, chunk in enumerate(chunks):
-        source = chunk.metadata.get("source", "unknown.txt")
-        filename = Path(source).name
-        content_hash = hashlib.md5(chunk.page_content.encode('utf-8')).hexdigest()[:12]
-        doc_id = f"file_{filename}_{content_hash}"
-        ids.append(doc_id)
+        # Use 'filename' (e.g. "notes.txt") not 'source' (the literal string "file")
+        filename = chunk.metadata.get("filename", "unknown")
+        filename = Path(filename).name
+        custom_id = f"txt_{filename}_chunk{i}"
+        uuid_id = generate_uuid_from_string(custom_id)
+        ids.append(uuid_id)
     return ids
 
 def run_ingestion()->list[Document]:
