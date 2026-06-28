@@ -54,7 +54,9 @@ def build_index():
             vectorstore.add_documents(documents=sms_chunks, ids= sms_ids)'''
         
         total= len(pdf_chunks)+ len(email_chunks) + len(file_chunks) + len(calendar_chunks)
-        total_chunks = vectorstore._collection.count()
+        qdrant_client = vectorstore.client
+        collection_info = qdrant_client.get_collection(vectorstore.collection_name)
+        total_chunks = collection_info.points_count
         
         print(f"✅ Added {total} chunks to vectorstore")
         print(f"✅ Total chunks in vectorstore now: {total_chunks}")
