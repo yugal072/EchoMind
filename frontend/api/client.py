@@ -2,6 +2,7 @@
 
 import requests
 from pathlib import Path
+from typing import Optional, List
 BASE_URL = "http://localhost:8000"  # Change this to your AWS endpoint when deployed
 
 def upload(file_paths):
@@ -20,6 +21,26 @@ def upload(file_paths):
 def ingest():
     response = requests.post(f"{BASE_URL}/ingest")
     return response.json()
+
+def ingest_vault(folder_path: str, subfolders: Optional[List[str]]=None):
+    """Call backend to ingest Obsidian vault"""
+    payload = {
+        "folder_path": folder_path,
+        "subfolders": subfolders or []
+    }
+    
+    try:
+        response = requests.post(f"{BASE_URL}/ingest/obsidian", json=payload, timeout=300)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {
+                "status": "error", 
+                "detail": response.text
+            }
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
+
 
 def ingest_audio(file_path: str):
     response = requests.post(
