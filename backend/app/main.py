@@ -2,15 +2,18 @@ from fastapi import FastAPI, HTTPException, Request, BackgroundTasks, UploadFile
 
 from fastapi.responses import JSONResponse
 import logging
+import os.path
 from typing import Optional, Dict, Any, List
 from pydantic import BaseModel, Field
 from pathlib import Path
 
 from app.RAG.index import ask
 from app.ingestion.ingest import build_index
+from app.ingestion.pipeline import generate_uuid_from_string
 from app.RAG.metadatas.filters import build_metadata_filter
 
 
+from app.ingestion.connectors.obsidian import ingest_obsidian_vault
 from app.ingestion.loaders.upload_loader import parse_uploaded_file
 from app.ingestion.pipeline import generate_audio_ids, load_audio_documents
 from app.RAG.index import get_vectorstore
@@ -42,12 +45,17 @@ async def http_exception_handler(request:Request, exc:HTTPException):
 class ChatRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=600, description="The question to ask the RAG system.")
     session_id: str = Field(..., min_length=1, max_length=100)
-    source: Optional[str]= None
-    sender: Optional[str]=None
+    source: Optional[str] = None
+    sender: Optional[str] = None
     subject: Optional[str] = None
     date_after: Optional[str] = None
-    date_before: Optional[str]=None
-    document_type: Optional[str]=None
+    date_before: Optional[str] = None
+    document_type: Optional[str] = None
+    # Extended filter fields — supported by build_metadata_filter() and the LLM extraction prompt
+    tags: Optional[str] = None        # comma-separated tag string, e.g. "internship,placement"
+    folder: Optional[str] = None      # obsidian folder name
+    language: Optional[str] = None    # audio transcription language
+    location: Optional[str] = None    # calendar event location
     
 class AudioIngestRequest(BaseModel):
     file_path: str
@@ -57,6 +65,10 @@ class SMSIngestionRequest(BaseModel):
     device: Optional[str] = "andriod"
     api_key: Optional[str] = None
     
+class ObsidianIngestRequest(BaseModel):
+    folder_path:str
+    subfolders: Optional[List[str]] = None    # optional 
+
 @app.post("/upload")
 async def upload_files(files: list[UploadFile]= File(...)):
     try:
@@ -156,6 +168,35 @@ async def ingest_audio(request: AudioIngestRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
         
+
+@app.post("/ingest/obsidian")
+async def ingest_obsidian(request: ObsidianIngestRequest):
+    try: 
+        if not request.folder_path or not os.path.isdir(request.folder_path):
+            raise HTTPException(status_code=400, detail="Invalid vault path")
+        
+        documents = ingest_obsidian_vault(
+            vault_path=request.folder_path,
+            subfolders=request.subfolders
+        )
+        
+        ids = [
+            generate_uuid_from_string(f"obsidian_{doc.metadata.get('file_path', i)}")
+            for i, doc in enumerate(documents)
+        ]
+        
+        # Add to vectorstore
+        vectorstore = get_vectorstore()
+        vectorstore.add_documents(documents)
+        
+        return {
+            "status" : "success",
+            "message": f"Successfully ingested {len(documents)} documents from obsidian vault",
+            "chunks_added": len(documents)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/chat")
 async def chat(request: ChatRequest):
     try:
@@ -165,12 +206,16 @@ async def chat(request: ChatRequest):
         result = ask(
             question=request.question,
             session_id=request.session_id,
-            source=request.source,              # raw values
+            source=request.source,
             sender=request.sender,
             subject=request.subject,
             date_after=request.date_after,
             date_before=request.date_before,
-            document_type=request.document_type
+            document_type=request.document_type,
+            tags=request.tags,
+            folder=request.folder,
+            language=request.language,
+            location=request.location,
         )
         return {"answer": result["answer"], "sources": result["sources"], "session_id": request.session_id, "token_usage": result['token_usage']} #, "output_tokens": result['output_tokens'], "total_tokens":result['total_tokens']}
     except HTTPException:
