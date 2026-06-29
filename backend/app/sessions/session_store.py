@@ -47,8 +47,6 @@ class PersistentSessionStore:
             # raw_messages must be in LangChain's native {"type": ..., "data": {...}} shape
             return messages_from_dict(raw_messages)
 
-            return messages_from_dict(raw_messages)
-
         except Exception as e:
             print(f"Error loading session {session_id}: {e}")
             return []
