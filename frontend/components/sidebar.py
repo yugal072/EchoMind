@@ -1,12 +1,13 @@
 import streamlit as st
 import requests
+import os.path
 import os
 from pathlib import Path
 
 main_path = Path(__file__).resolve().parents[2]
 backend_path = main_path/ "backend"
 
-from api.client import ingest, upload, ingest_audio
+from api.client import ingest, upload, ingest_audio, ingest_vault
 BASE_URL = "http://localhost:8000"
 
 def render_sidebar():
@@ -38,7 +39,37 @@ def render_sidebar():
     
             st.write(f"Added Uploaded files to vectorstore {result}")
             
-    
+            
+        ### Obsidian Vault Upload Section
+        st.subheader("Obsidian Vault")
+        vault_path = st.text_input(
+            "Enter Obsidian Vault Path:", 
+            placeholder="D:\\VAULTS\\MyVault"
+        )
+        
+        # Optional subfolders
+        subfolders_input = st.text_input(
+            "Subfolders to ingest (comma separated, optional):", 
+            placeholder="Projects, Daily Notes, Work"
+        )
+        
+        if st.button("Ingest Obsidian Vault", type="primary"):
+            if not vault_path or not os.path.isdir(vault_path):
+                st.error("❌ Please enter a valid folder path.")
+            else:
+                # Convert comma-separated input to list
+                subfolders = None
+                if subfolders_input.strip():
+                    subfolders = [s.strip() for s in subfolders_input.split(",")]
+                
+                with st.spinner("Ingesting Obsidian Vault..."):
+                    result = ingest_vault(vault_path, subfolders)
+                    if result.get("status") == "success":
+                        st.success(f"✅ Ingested {result.get('chunks_added', 0)} chunks")
+                    else:
+                        st.error(f"❌ Failed: {result.get('detail', 'Unknown error')}")
+            
+            
         ### Audio Upload Section
         uploaded_audios = st.file_uploader(
             "Upload Voice Note / Audio",
